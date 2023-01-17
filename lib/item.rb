@@ -1,49 +1,69 @@
 module Combat
   class Item
     ITEMS = { long_sword:     { name:     "Long Sword",
-                                type:     :equipment,
-                                effects:  [ { type: :modifier, attribute: :strength, value: 2 } ] },
+                                category: :equipment,
+                                effects:  [ { category: :modifier, attribute: :strength, value: 2 } ] },
               leather_armor:  { name:     'Leather Armor',
-                                type:     :equipment,
-                                effects:  [ { type: :modifier, attribute: :defense, value: 2 } ] },
+                                category: :equipment,
+                                effects:  [ { category: :modifier, attribute: :defense, value: 2 } ] },
               amulet:         { name:     'Amulet',
-                                type:     :equipment,
-                                effects:  [ { type: :modifier, attribute: :magic_defense, value: 2 } ] },
+                                category: :equipment,
+                                effects:  [ { category: :modifier, attribute: :magic_defense, value: 2 } ] },
               health_potion:  { name:     'Health Potion',
-                                type:     :consumable,
+                                category: :consumable,
                                 uses:     1,
-                                effects:  [ { type: :modifier, attribute: :health, value: 10 } ] },
+                                effects:  [ { category: :modifier, attribute: :health, value: 10 } ] },
               mana_potion:    { name:     'Mana Potion',
-                                type:     :consumable,
+                                category: :consumable,
                                 uses:     1,
-                                effect:   [ { type: :modifier, attribute: :mana, value: 5 } ] },
-              fire_wand:      { name:     'Fire Wand',
-                                type:     :consumable,
+                                effects:  [ { category: :modifier, attribute: :mana, value: 5 } ] },
+              blowpipe:       { name:     'Blowpipe',
+                                category: :consumable,
                                 uses:     3,
-                                effects:  [ { type: :attack, value: 5..10 } ] }  }
+                                effects:  [ { category: :attack, hits_range: 5..7 } ] },
+              fire_wand:      { name:     'Fire Wand',
+                                category: :consumable,
+                                uses:     3,
+                                effects:  [ { category: :magic_attack, hits_range: 5..10 } ] } }
     # other possible items: magic sword, magic armor, health and mana potion, ...
     # ... all sorts of wands, etc...
     
     attr_accessor :type,
-                  :uses
+                  :usable, :uses
 
     def initialize(item_type)
-      unless ITEMS[item_type][:type] == :consumable
-        raise "Can't instantiate non-consumable item (#{type})!"
-      end
+      @type   = item_type
 
-      @type = item_type
-      @uses = ITEMS[item_type][:uses]
+      if ITEMS[item_type][:category] == :consumable
+        @usable = true
+        @uses   = ITEMS[item_type][:uses]
+      else
+        @usable = false
+      end
     end
 
-    def use()       @uses -= 1 end
-    def depleted?() @uses <= 0 end
+    def usable?() @usable end
+
+    def use() 
+      if @usable
+        @uses -= 1
+      else
+        raise "Item #{@type} is not usable!"
+      end
+    end
+
+    def depleted?()
+      if @usable
+        @uses <= 0
+      else 
+        raise "Item #{@type} is not usable so cannot be depleted!"
+      end
+    end
+    alias used? depleted?
   end
 end
 
 Combat::Item::ITEMS.each_pair do |item_type,item|
-  if item[:type] == :consumable
-    method_name = "new_#{item_type.to_s}".to_sym
-    Combat::Item.define_singleton_method(method_name) { Combat::Item.new item_type }
-  end
+  method_name = "new_#{item_type.to_s}".to_sym
+  Combat::Item.define_singleton_method(method_name) { Combat::Item.new item_type }
 end
