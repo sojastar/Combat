@@ -24,7 +24,26 @@ module Combat
     # other possible items: magic sword, magic armor, health and mana potion, ...
     # ... all sorts of wands, etc...
     
-    def initialize(type)
+    attr_accessor :type,
+                  :uses
+
+    def initialize(item_type)
+      unless ITEMS[item_type][:type] == :consumable
+        raise "Can't instantiate non-consumable item (#{type})!"
+      end
+
+      @type = item_type
+      @uses = ITEMS[item_type][:uses]
     end
+
+    def use()       @uses -= 1 end
+    def depleted?() @uses <= 0 end
+  end
+end
+
+Combat::Item::ITEMS.each_pair do |item_type,item|
+  if item[:type] == :consumable
+    method_name = "new_#{item_type.to_s}".to_sym
+    Combat::Item.define_singleton_method(method_name) { Combat::Item.new item_type }
   end
 end

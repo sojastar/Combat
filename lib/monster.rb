@@ -2,8 +2,8 @@ module Combat
   class Monster
     MONSTERS  = { skeleton: { name:               "Skeleton",
                               health_point_range: 10..15,
-                              armor:              0,
-                              magic_armor:        1,
+                              defense:            0,
+                              magic_defense:      1,
                               attacks:            [ { name:         "bone slash",
                                                       type:         :physical,
                                                       hits_range:   1..2,
@@ -14,8 +14,8 @@ module Combat
                                                       probability:  0.75...1 } ] },
                   gobelin:  { name:               "Gobelin",
                               health_point_range: 6..10,
-                              armor:              2,
-                              magic_armor:        0,
+                              defense:            2,
+                              magic_defense:      0,
                               attacks:            [ { name:         "sword slash",
                                                       type:         :physical,
                                                       hits_range:   2..3,
@@ -26,8 +26,8 @@ module Combat
                                                       probability:  0.75...1.0 } ] },
                   warlock:  { name:               "Warlock",
                               health_point_range: 5..8,
-                              armor:              1,
-                              magic_armor:        3,
+                              defense:            1,
+                              magic_defense:      3,
                               attacks:            [ { name:         "wand strike",
                                                       type:         :physical,
                                                       hits_range:   1..2,
@@ -53,12 +53,12 @@ module Combat
       MONSTERS[@type][:name]
     end
 
-    def armor
-      MONSTERS[@type][:armor]
+    def defense
+      MONSTERS[@type][:defense]
     end
 
-    def magic_armor
-      MONSTERS[@type][:magic_armor]
+    def magic_defense
+      MONSTERS[@type][:magic_defense]
     end
 
     def attack(dice)
