@@ -13,6 +13,8 @@ describe Combat::Monster do
     assert_equal    skeleton_template[:name],               m.name
     assert_equal    skeleton_template[:defense],            m.defense
     assert_equal    skeleton_template[:magic_defense],      m.magic_defense
+    
+    assert_includes skeleton_template[:loot][:items],       m.drop(0.0) # 0.0 assures 100% drop
   end
 
   it 'attacks' do

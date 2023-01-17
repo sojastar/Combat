@@ -11,7 +11,9 @@ module Combat
                                                     { name:         "smilling skull bite",
                                                       type:         :physical,
                                                       hits_range:   3..5,
-                                                      probability:  0.75...1 } ] },
+                                                      probability:  0.75...1 } ],
+                              loot:               { probability:  0.25,
+                                                    items:        [ :leather_armor ] } },
                   gobelin:  { name:               "Gobelin",
                               health_point_range: 6..10,
                               defense:            2,
@@ -23,7 +25,10 @@ module Combat
                                                     { name:         "power thrust",
                                                       type:         :physical,
                                                       hits_range:   4..7,
-                                                      probability:  0.75...1.0 } ] },
+                                                      probability:  0.75...1.0 } ],
+                              loot:               { probability:  0.25,
+                                                    items:        [ :long_sword,
+                                                                    :health_potion ] } },
                   warlock:  { name:               "Warlock",
                               health_point_range: 5..8,
                               defense:            1,
@@ -39,7 +44,11 @@ module Combat
                                                     { name:         "thunder",
                                                       type:         :magical,
                                                       hits_range:   5..7,
-                                                      probability:  0.8...1.0 } ] } }
+                                                      probability:  0.8...1.0 } ],
+                              loot:                 { probability:  0.25,
+                                                      items:        [ :amulet,
+                                                                      :mana_potion,
+                                                                      :fire_wand ] } } }
 
     attr_reader :type,
                 :health_points
@@ -67,6 +76,11 @@ module Combat
       { name: attack[:name],
         type: attack[:type],
         hits: rand(attack[:hits_range]) }
+    end
+
+    def drop(dice)
+      loot_data = MONSTERS[@type][:loot]
+      dice <= loot_data[:probability] ? loot_data[:items].sample : nil 
     end
 
     def self.new_skeleton() Combat::Monster.new :skeleton end
