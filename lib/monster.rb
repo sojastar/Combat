@@ -4,12 +4,12 @@ module Combat
                               health_point_range: 10..15,
                               defense:            0,
                               magic_defense:      1,
-                              attacks:            [ { name:         "bone slash",
-                                                      type:         :physical,
+                              attacks:            [ { name:         "Bone Slash",
+                                                      category:     :physical,
                                                       hits_range:   1..2,
                                                       probability:  0.0...0.75 },
                                                     { name:         "smilling skull bite",
-                                                      type:         :physical,
+                                                      category:     :physical,
                                                       hits_range:   3..5,
                                                       probability:  0.75...1 } ],
                               loot:               { probability:  0.25,
@@ -18,12 +18,12 @@ module Combat
                               health_point_range: 6..10,
                               defense:            2,
                               magic_defense:      0,
-                              attacks:            [ { name:         "sword slash",
-                                                      type:         :physical,
+                              attacks:            [ { name:         "Sword Slash",
+                                                      category:     :physical,
                                                       hits_range:   2..3,
                                                       probability:  0.0...0.75 },
-                                                    { name:         "power thrust",
-                                                      type:         :physical,
+                                                    { name:         "Power thrust",
+                                                      category:     :physical,
                                                       hits_range:   4..7,
                                                       probability:  0.75...1.0 } ],
                               loot:               { probability:  0.25,
@@ -33,16 +33,16 @@ module Combat
                               health_point_range: 5..8,
                               defense:            1,
                               magic_defense:      3,
-                              attacks:            [ { name:         "wand strike",
-                                                      type:         :physical,
+                              attacks:            [ { name:         "Wand Strike",
+                                                      category:         :physical,
                                                       hits_range:   1..2,
                                                       probability:  0.0...0.45 },
-                                                    { name:         "fire",
-                                                      type:         :magical,
+                                                    { name:         "Fire Ball",
+                                                      category:     :magical,
                                                       hits_range:   3..4,
                                                       probability:  0.45...0.8 },
-                                                    { name:         "thunder",
-                                                      type:         :magical,
+                                                    { name:         "Thunderbolt",
+                                                      category:     :magical,
                                                       hits_range:   5..7,
                                                       probability:  0.8...1.0 } ],
                               loot:                 { probability:  0.25,
@@ -72,15 +72,30 @@ module Combat
 
     def attack(dice)
       attack  = MONSTERS[@type][:attacks].select { |attck| attck[:probability] === dice }.first
+      damage  = rand(attack[:hits_range])
 
-      { name: attack[:name],
-        type: attack[:type],
-        hits: rand(attack[:hits_range]) }
+      { type:     "#{attack[:category].to_s}_attack".to_sym,
+        actor:    :monster,
+        damage:   damage,
+        message:  "The #{MONSTERS[@type][:name]} hits you with a #{attack[:name]} that deals #{damage} hits." }
     end
 
     def drop(dice)
       loot_data = MONSTERS[@type][:loot]
-      dice <= loot_data[:probability] ? loot_data[:items].sample : nil 
+      if dice <= loot_data[:probability]
+        loot = loot_data[:items].sample
+
+        { type:     :monster_drop,
+          actor:    :monster,
+          item:     loot,
+          message:  "You search the #{MONSTERS[@type][:name]}'s dead body and find a #{Combat::Item::ITEMS[loot][:name]}." }
+
+      else
+        { type:     :monster_no_drop,
+          actor:    :monster,
+          message:  "You search the #{MONSTERS[@type][:name]}'s dead body but find nothing..." }
+
+      end
     end
   end
 end
