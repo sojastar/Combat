@@ -82,9 +82,10 @@ module Combat
       loot_data = MONSTERS[@type][:loot]
       dice <= loot_data[:probability] ? loot_data[:items].sample : nil 
     end
-
-    def self.new_skeleton() Combat::Monster.new :skeleton end
-    def self.new_gobelin()  Combat::Monster.new :gobelin  end
-    def self.new_warlock()  Combat::Monster.new :warlock  end
   end
+end
+
+Combat::Monster::MONSTERS.each_key do |monster_type|
+  methode_name  = "new_#{monster_type.to_s}".to_sym
+  Combat::Monster.define_singleton_method(methode_name) { Combat::Monster.new monster_type }
 end
