@@ -11,8 +11,8 @@ describe Combat::Monster do
 
     assert_includes skeleton_template[:health_point_range], m.health_points
     assert_equal    skeleton_template[:name],               m.name
-    assert_equal    skeleton_template[:armor],              m.armor
-    assert_equal    skeleton_template[:magic_armor],        m.magic_armor
+    assert_equal    skeleton_template[:defense],            m.defense
+    assert_equal    skeleton_template[:magic_defense],      m.magic_defense
   end
 
   it 'attacks' do
