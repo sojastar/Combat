@@ -26,6 +26,10 @@ describe Combat::Player do
     assert_equal  :long_sword,  @p.items.first.type
   end
 
+  it 'has initiative' do
+    assert_equal 8, @p.initiative
+  end
+
   it 'can attack' do
     a = @p.attack
 

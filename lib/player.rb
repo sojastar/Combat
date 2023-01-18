@@ -3,6 +3,7 @@ module Combat
     attr_reader :health, :max_health,
                 :mana, :max_mana,
                 :strength,
+                :intelligence,
                 :defense, :magic_defense,
                 :items
 
@@ -19,6 +20,10 @@ module Combat
       @magic_defense  = magic_defense
 
       @items          = items.map { |item_type| Combat::Item.new item_type }
+    end
+
+    def initiative
+      @strength + @intelligence
     end
 
     def attack

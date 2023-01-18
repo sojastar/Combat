@@ -65,6 +65,10 @@ module Combat
       MONSTERS[@type][:name]
     end
 
+    def initiative
+      MONSTERS[@type][:initiative]
+    end
+
     def defense
       MONSTERS[@type][:defense]
     end
