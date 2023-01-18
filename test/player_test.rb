@@ -6,7 +6,8 @@ describe Combat::Player do
     @p  = Combat::Player.new  20,             # health
                               10,             # mana
                                5,             # strength
-                               2,             # defense
+                               3,             # intelligence
+                               2,             # defense 
                                0,             # magic_defense
                               [ :long_sword ] # strating items
   end

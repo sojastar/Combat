@@ -6,7 +6,7 @@ module Combat
                 :defense, :magic_defense,
                 :items
 
-    def initialize(health,mana,strength,defense,magic_defense,items=[])
+    def initialize(health,mana,strength,intelligence,defense,magic_defense,items=[])
       @health         = health
       @max_health     = health
 
@@ -14,6 +14,7 @@ module Combat
       @max_mana       = mana
 
       @strength       = strength
+      @intelligence   = intelligence
       @defense        = defense
       @magic_defense  = magic_defense
 
