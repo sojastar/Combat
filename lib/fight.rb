@@ -21,7 +21,6 @@ module Combat
       end
     end
 
-    #def switch_to_player()  @current_actor  = @player; @player.begin_turn   end
     def switch_to_player()  @current_actor  = @player   end
     def switch_to_monster() @current_actor  = @monster  end
 

@@ -25,20 +25,17 @@ while true do
   puts "A #{monster.name} lurks out from the dark!!!"
 
   fight = Combat::Fight.new player, monster
-  pp fight.is_on
   while fight.is_on do
     step = fight.run
 
     puts step[:message] if step[:should_print]
 
-    if step[:player_status] == :dead
+    if fight.player.dead?
       puts 'You died...'
       exit(0)
     end
 
-    #break if fight.player.escaped
-
-    if step[:monster_status] == :dead
+    if fight.monster.dead?
       puts "You defeated the #{monster.name}! You can move on!"
       break
     end
