@@ -1,5 +1,6 @@
-- Initiative for player and monsteras. DONE !
+- Initiative for player and monsters. DONE !
+- Add spell casting for the player.
 - Rationalize the "magic" and "magical" terminology in the code.
-- Remove essential amror and magical armor from the player.
-  They should get from from equipment only.
+- Remove essential amror and magical armor from the player. DONE !
+  They should get from from equipment only.                 DONE !
 - Experience and leveling up.

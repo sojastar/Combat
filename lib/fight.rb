@@ -35,7 +35,7 @@ module Combat
           message  += ' ' + hit[:message]
 
         when /done/
-          @player.end_turn
+          @player.turn_end
           switch_to_monster
           should_print = false
 

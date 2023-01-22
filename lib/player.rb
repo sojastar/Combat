@@ -26,7 +26,6 @@ module Combat
                 :mana, :max_mana,
                 :strength,
                 :intelligence,
-                :defense, :magic_defense,
                 :items,
                 :spells
 
@@ -34,7 +33,7 @@ module Combat
     ############################################################################
     # 3. INITIALIZATION :
     ############################################################################
-    def initialize(health,mana,strength,intelligence,defense,magic_defense,items=[],spells=[])
+    def initialize(health,mana,strength,intelligence,items=[],spells=[])
       @health         = health
       @max_health     = health
 
@@ -43,13 +42,11 @@ module Combat
 
       @strength       = strength
       @intelligence   = intelligence
-      @defense        = defense
-      @magic_defense  = magic_defense
 
       @items          = items.map { |item_type| Combat::Item.new item_type }
       @spells         = [] # for now !
 
-      begin_turn
+      turn_begin
     end
 
 
@@ -61,8 +58,8 @@ module Combat
     def alive?()  @health > 0   end
     def dead?()   @health <= 0  end
 
-    def begin_turn() @state = :begin_turn end
-    alias end_turn begin_turn
+    def turn_begin() @state = :begin_turn end
+    alias turn_end turn_begin
 
     def wait_for_action_input() @state  = :wait_for_action_input  end
     def wait_for_spell_input()  @state  = :wait_for_spell_input   end
@@ -74,9 +71,16 @@ module Combat
     def is_waiting_for_item_input?()    @state == :wait_for_item_input    end
     def is_done_waiting?()              @state == :done_waiting           end
     
-    def status() "health:#{@health}, mana: #{@mana}" end
+    def status() "health: #{@health}, mana: #{@mana}" end
 
     def menu() ACTIONS.map { |action| action[:text] }.join(' - ') end
+
+    def defense
+      @items.inject(0) { |total,item| item.defense_item? ? item.defense : 0 }
+    end
+    def magic_defense
+      @items.inject(0) { |total,item| item.magic_defense_item? ? item.magic_defense : 0 }
+    end
 
 
     ############################################################################

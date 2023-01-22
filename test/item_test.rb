@@ -50,6 +50,46 @@ describe Combat::Item do
     assert_equal  'Fire Wand',      w.name
   end
 
+  it 'can be a defense item or not' do
+    s = Combat::Item.new_long_sword
+    l = Combat::Item.new_leather_armor
+    a = Combat::Item.new_amulet
+    h = Combat::Item.new_magic_helm
+    m = Combat::Item.new_mana_potion
+
+    refute  s.defense_item?
+
+    assert        l.defense_item?
+    assert_equal  2, l.defense
+
+    refute        a.defense_item?
+
+    assert        h.defense_item?
+    assert_equal  1, h.defense
+
+    refute  m.defense_item?
+  end
+
+  it 'can be a magic defense item or not' do
+    s = Combat::Item.new_long_sword
+    l = Combat::Item.new_leather_armor
+    a = Combat::Item.new_amulet
+    h = Combat::Item.new_magic_helm
+    m = Combat::Item.new_mana_potion
+
+    refute  s.magic_defense_item?
+
+    refute  l.magic_defense_item?
+
+    assert        a.magic_defense_item?
+    assert_equal  2, a.magic_defense
+
+    assert        h.magic_defense_item?
+    assert_equal  1, h.magic_defense
+
+    refute  m.magic_defense_item?
+  end
+
   it 'is used' do
     w = Combat::Item.new_fire_wand
     w.use

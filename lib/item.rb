@@ -12,6 +12,10 @@ module Combat
               amulet:         { name:     'Amulet',
                                 category: :equipment,
                                 effects:  [ { category: :modifier, attribute: :magic_defense, value: 2 } ] },
+              magic_helm:     { name:     'Magic Helm',
+                                category: :equipment,
+                                effects:  [ { category: :modifier, attribute: :defense, value: 1 },
+                                            { category: :modifier, attribute: :magic_defense, value: 1 } ] },
               health_potion:  { name:     'Health Potion',
                                 category: :consumable,
                                 uses:     1,
@@ -58,6 +62,36 @@ module Combat
     # 3. OTHER ACCESSORS :
     ############################################################################
     def name() ITEMS[@type][:name] end
+
+    def defense_item?
+      ITEMS[@type][:effects].any? do |effect|
+        effect[:category] == :modifier && effect[:attribute] == :defense
+      end
+    end
+
+    def defense
+      ITEMS[@type][:effects].select { |effect|
+        effect[:category] == :modifier && effect[:attribute] == :defense
+      }
+      .inject(0) { |total,effect|
+        total + effect[:value]
+      }
+    end
+
+    def magic_defense_item?
+      ITEMS[@type][:effects].any? do |effect|
+        effect[:category] == :modifier && effect[:attribute] == :magic_defense
+      end
+    end
+
+    def magic_defense
+      ITEMS[@type][:effects].select { |effect|
+        effect[:category] == :modifier && effect[:attribute] == :magic_defense
+      }
+      .inject(0) { |total,effect|
+        total + effect[:value]
+      }
+    end
 
 
     ############################################################################

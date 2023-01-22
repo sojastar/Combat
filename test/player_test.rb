@@ -7,8 +7,6 @@ describe Combat::Player do
                               10,             # mana
                                5,             # strength
                                3,             # intelligence
-                               2,             # defense 
-                               0,             # magic_defense
                               [ :long_sword ] # strating items
   end
 
@@ -20,8 +18,6 @@ describe Combat::Player do
     assert_equal  10,               @p.max_mana
 
     assert_equal   5,               @p.strength
-    assert_equal   2,               @p.defense
-    assert_equal   0,               @p.magic_defense
 
     assert_equal  :long_sword,  @p.items.first.type
   end
@@ -44,7 +40,7 @@ describe Combat::Player do
     assert_equal  :player_get_hit,  p[:type]
     assert_equal  :player,          p[:actor]
 
-    assert_equal  17, @p.health
+    assert_equal  15, @p.health
   end
 
   it 'receives magic damage' do
@@ -85,7 +81,7 @@ describe Combat::Player do
     assert_equal  :player,            u[:actor]
     assert_equal  0,                  u[:damage]
 
-    assert_equal  15, @p.health
+    assert_equal  13, @p.health
     assert_equal  Combat::Item::ITEMS[i.type][:uses] - 1, i.uses
   end
 
@@ -96,7 +92,7 @@ describe Combat::Player do
  
     i_temp  = Combat::Item::ITEMS[i.type]
 
-    assert_equal    :player_use_attack_object,            u[:type]
+    assert_equal    :attack,            u[:type]
     assert_equal    :player,                              u[:actor]
     assert_includes i_temp[:effects].first[:hits_range],  u[:damage]
 
@@ -110,7 +106,7 @@ describe Combat::Player do
  
     i_temp  = Combat::Item::ITEMS[i.type]
 
-    assert_equal    :player_use_magic_attack_object,      u[:type]
+    assert_equal    :magic_attack,      u[:type]
     assert_equal    :player,                              u[:actor]
     assert_includes i_temp[:effects].first[:hits_range],  u[:damage]
 

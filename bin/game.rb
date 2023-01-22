@@ -6,14 +6,13 @@ require_relative '../lib/monster.rb'
 require_relative '../lib/player.rb'
 require_relative '../lib/fight.rb'
 
+READ_DELAY  = 0.5
 #START_MESSAGE = [ "A #
 
 player  = Combat::Player.new  20,   # health
                               10,   # mana
                                5,   # strength
                                3,   # intelligence
-                               2,   # defense 
-                               0,   # magic_defense
                               #[]    # starting items
                               [:long_sword, :health_potion, :fire_wand]    # starting items
 
@@ -39,5 +38,7 @@ while true do
       puts "You defeated the #{monster.name}! You can move on!"
       break
     end
+
+    sleep READ_DELAY
   end
 end
