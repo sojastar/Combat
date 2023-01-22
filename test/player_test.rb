@@ -39,7 +39,7 @@ describe Combat::Player do
   end
 
   it 'receives physical damage' do
-    p = @p.get_hit( { type: :physical_attack, damage: 5 } )
+    p = @p.hit( { type: :physical_attack, damage: 5 } )
     
     assert_equal  :player_get_hit,  p[:type]
     assert_equal  :player,          p[:actor]
@@ -48,7 +48,7 @@ describe Combat::Player do
   end
 
   it 'receives magic damage' do
-    m = @p.get_hit( { type: :magic_attack, damage: 5 } )
+    m = @p.hit( { type: :magic_attack, damage: 5 } )
     
     assert_equal  :player_get_hit,  m[:type]
     assert_equal  :player,          m[:actor]
@@ -56,10 +56,14 @@ describe Combat::Player do
     assert_equal  15, @p.health
   end
 
-  it 'knows if it is dead' do
-    @p.get_hit( { type: :physical_attack, damage: 25 } )
+  it 'knows if it is alive' do
+    assert @p.alive?
+  end
 
-    assert @p.is_dead?
+  it 'knows if it is dead' do
+    @p.hit( { type: :physical_attack, damage: 25 } )
+
+    assert @p.dead?
   end
 
   it 'receives items' do
@@ -73,7 +77,7 @@ describe Combat::Player do
 
   it 'can use a modifier item' do
     r = @p.receive  :health_potion
-    h = @p.get_hit( { type: :physical_attack, damage: 17 } )
+    h = @p.hit( { type: :physical_attack, damage: 17 } )
     i = @p.items.last
     u = @p.use i
  

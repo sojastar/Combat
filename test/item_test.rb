@@ -34,6 +34,22 @@ describe Combat::Item do
     assert_equal  item_templates[w.type][:uses],  w.uses
   end
 
+  it 'knows its name' do
+    s = Combat::Item.new_long_sword
+    l = Combat::Item.new_leather_armor
+    a = Combat::Item.new_amulet
+    h = Combat::Item.new_health_potion
+    m = Combat::Item.new_mana_potion
+    w = Combat::Item.new_fire_wand
+
+    assert_equal  'Long Sword',     s.name
+    assert_equal  'Leather Armor',  l.name
+    assert_equal  'Amulet',         a.name
+    assert_equal  'Health Potion',  h.name
+    assert_equal  'Mana Potion',    m.name
+    assert_equal  'Fire Wand',      w.name
+  end
+
   it 'is used' do
     w = Combat::Item.new_fire_wand
     w.use
@@ -59,6 +75,18 @@ describe Combat::Item do
     s = Combat::Item.new_long_sword
 
     assert_raises { s.depleted? }
+  end
+
+  it 'can pick usable items' do
+    i1  = Combat::Item.new_long_sword
+    i2  = Combat::Item.new_mana_potion
+    i3  = Combat::Item.new_amulet
+    i4  = Combat::Item.new_blowpipe
+    l   = [ i1, i2, i3, i4 ]
+    ul  = Combat::Item.usable l
+
+    assert_includes ul, i2
+    assert_includes ul, i4
   end
 end
 

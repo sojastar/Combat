@@ -1,5 +1,8 @@
 module Combat
   class Item
+    ############################################################################
+    # 1. CONSTANTS :
+    ############################################################################
     ITEMS = { long_sword:     { name:     "Long Sword",
                                 category: :equipment,
                                 effects:  [ { category: :modifier, attribute: :strength, value: 2 } ] },
@@ -28,9 +31,17 @@ module Combat
     # other possible items: magic sword, magic armor, health and mana potion, ...
     # ... all sorts of wands, etc...
     
+
+    ############################################################################
+    # 2. BASIC ACCESSORS :
+    ############################################################################
     attr_accessor :type,
                   :usable, :uses
 
+
+    ############################################################################
+    # 3. INITIALIZATION :
+    ############################################################################
     def initialize(item_type)
       @type   = item_type
 
@@ -42,7 +53,21 @@ module Combat
       end
     end
 
+
+    ############################################################################
+    # 3. OTHER ACCESSORS :
+    ############################################################################
+    def name() ITEMS[@type][:name] end
+
+
+    ############################################################################
+    # 4. USAGE :
+    ############################################################################
     def usable?() @usable end
+
+    def self.usable(list)
+      list.filter { |item| item.usable? }
+    end
 
     def use() 
       if @usable

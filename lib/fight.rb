@@ -1,28 +1,61 @@
 module Combat
   class Fight
+    attr_accessor :is_on
+
     def initialize(player,monster)
       @player   = player
       @monster  = monster
 
-      @monster_has_initiative = if @player.initiative <= @monster.initiative
+      @current_actor  = @player.initiative >= @monster.initiative ? @player : @monster
+
+      @is_on  = true
     end
 
+    def roll_dice() rand end
+
     def run
-      run_monster if @monster_has_initiative
-
-      while true do
-        run_player
-        break if @player.is_dead?
-
-        run_monster
-        break if @monster.is_dead?
+      case @current_actor
+      when @player  then run_player
+      when @monster then run_monster
       end
     end
 
+    def switch_to_player()  @current_actor  = @player   end
+    def switch_to_monster() @current_actor  = @monster  end
+
     def run_player
+        step  = @player.run
+
+        message       = step[:message]
+        should_print  = true
+        case step[:type]
+        when /attack/
+          hit = @monster.hit step
+          message += ' ' + hit[:message]
+
+        when /done/
+          @player.end_turn
+          switch_to_monster
+          should_print = false
+
+        end
+
+        { player_status:  :alive,
+          monster_status: @monster.alive? ? :alive : :dead,
+          message:        message,
+          should_print:   should_print }
     end
 
     def run_monster
+      attack  = @monster.attack roll_dice 
+      hit     = @player.hit attack
+
+      switch_to_player
+
+      { player_status:  @player.alive? ? :alive : :dead,
+        monster_status: :alive,
+        message:        attack[:message] + "\n" + hit[:message],
+        should_print:   true }
     end
   end
 end

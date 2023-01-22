@@ -3,24 +3,24 @@ require_relative 'test_helper.rb'
 
 describe Combat::Monster do
   it 'creates monsters' do
-    m = Combat::Monster::new_skeleton
+    s = Combat::Monster::new_skeleton
 
-    assert_equal    :skeleton,                              m.type
+    assert_equal    :skeleton,                              s.type
 
-    skeleton_template = Combat::Monster::MONSTERS[m.type]
+    skeleton_template = Combat::Monster::MONSTERS[s.type]
 
-    assert_includes skeleton_template[:health_point_range], m.health_points
-    assert_equal    skeleton_template[:name],               m.name
-    assert_equal    skeleton_template[:initiative],         m.initiative
-    assert_equal    skeleton_template[:defense],            m.defense
-    assert_equal    skeleton_template[:magic_defense],      m.magic_defense
+    assert_includes skeleton_template[:health_point_range], s.health
+    assert_equal    skeleton_template[:name],               s.name
+    assert_equal    skeleton_template[:initiative],         s.initiative
+    assert_equal    skeleton_template[:defense],            s.defense
+    assert_equal    skeleton_template[:magic_defense],      s.magic_defense
   end
 
   it 'attacks' do
-    m   = Combat::Monster::new_warlock
-    a1  = m.attack 0.3
-    a2  = m.attack 0.6
-    a3  = m.attack 0.9
+    w   = Combat::Monster::new_warlock
+    a1  = w.attack 0.3
+    a2  = w.attack 0.6
+    a3  = w.attack 0.9
 
     attacks = Combat::Monster::MONSTERS[:warlock][:attacks]
 
@@ -37,11 +37,43 @@ describe Combat::Monster do
     assert_includes attacks[2][:hits_range],  a3[:damage]
   end
 
-  it 'drops items...' do
-    m = Combat::Monster::new_skeleton
-    d = m.drop(0.0)   # 0.0 assures a 100% drop rate
+  it 'receives physical damage' do
+    g = Combat::Monster::new_gobelin
+    p = g.hit( { type: :physical_attack, damage: 5 } )
+    
+    assert_equal  :monster_get_hit,  p[:type]
+    assert_equal  :monster,          p[:actor]
 
-    skeleton_template = Combat::Monster::MONSTERS[m.type]
+    assert_includes (3..7), g.health
+  end
+
+  it 'receives magic damage' do
+    g = Combat::Monster::new_gobelin
+    m = g.hit( { type: :magic_attack, damage: 5 } )
+    
+    assert_equal  :monster_get_hit,  m[:type]
+    assert_equal  :monster,          m[:actor]
+
+    assert_includes (1..5), g.health
+  end
+
+  it 'knows if it is alive' do
+    g = Combat::Monster::new_gobelin
+    assert g.alive?
+  end
+
+  it 'knows if it is dead' do
+    g = Combat::Monster::new_gobelin
+    g.hit( { type: :physical_attack, damage: 25 } )
+
+    assert g.dead?
+  end
+
+  it 'drops items...' do
+    s = Combat::Monster::new_skeleton
+    d = s.drop(0.0)   # 0.0 assures a 100% drop rate
+
+    skeleton_template = Combat::Monster::MONSTERS[s.type]
 
     assert_equal    :monster_drop,                    d[:type]
     assert_equal    :monster,                         d[:actor]
@@ -49,8 +81,8 @@ describe Combat::Monster do
   end
 
   it '... but sometimes it does not drops items' do
-    m = Combat::Monster::new_skeleton
-    d = m.drop(1.0)   # 1.0 assures a 0% drop rate
+    s = Combat::Monster::new_skeleton
+    d = s.drop(1.0)   # 1.0 assures a 0% drop rate
 
     assert_equal    :monster_no_drop, d[:type]
     assert_equal    :monster,         d[:actor]

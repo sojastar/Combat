@@ -1,5 +1,8 @@
 module Combat
   class Monster
+    ############################################################################
+    # 1. CONSTANTS :
+    ############################################################################
     MONSTERS  = { skeleton: { name:               "Skeleton",
                               health_point_range: 10..15,
                               defense:            0,
@@ -41,42 +44,55 @@ module Combat
                                                       hits_range:   1..2,
                                                       probability:  0.0...0.45 },
                                                     { name:         "Fire Ball",
-                                                      category:     :magical,
+                                                      category:     :magic,
                                                       hits_range:   3..4,
                                                       probability:  0.45...0.8 },
                                                     { name:         "Thunderbolt",
-                                                      category:     :magical,
+                                                      category:     :magic,
                                                       hits_range:   5..7,
                                                       probability:  0.8...1.0 } ],
                               loot:                 { probability:  0.25,
                                                       items:        [ :amulet,
                                                                       :mana_potion,
                                                                       :fire_wand ] } } }
+    
 
+    ############################################################################
+    # 2. BASIC ACCESSORS :
+    ############################################################################
     attr_reader :type,
-                :health_points
+                :health
 
+
+    ############################################################################
+    # 3. INITIALIZATION :
+    ############################################################################
     def initialize(type)
-      @type           = type
-      @health_points  = rand(MONSTERS[type][:health_point_range])
+      @type   = type
+      @health = rand(MONSTERS[type][:health_point_range])
     end
 
-    def name
-      MONSTERS[@type][:name]
+    def self.new_random_monster
+      monster_types = MONSTERS.keys
+      Monster.new monster_types.sample
     end
 
-    def initiative
-      MONSTERS[@type][:initiative]
-    end
 
-    def defense
-      MONSTERS[@type][:defense]
-    end
+    ############################################################################
+    # 4. OTHER ACCESSORS :
+    ############################################################################
+    def name()          MONSTERS[@type][:name]          end
+    def initiative()    MONSTERS[@type][:initiative]    end
+    def defense()       MONSTERS[@type][:defense]       end
+    def magic_defense() MONSTERS[@type][:magic_defense] end
 
-    def magic_defense
-      MONSTERS[@type][:magic_defense]
-    end
+    def alive?()  @health > 0   end
+    def dead?()   @health <= 0  end
 
+
+    ############################################################################
+    # 5. ACTIONS :
+    ############################################################################
     def attack(dice)
       attack  = MONSTERS[@type][:attacks].select { |attck| attck[:probability] === dice }.first
       damage  = rand(attack[:hits_range])
@@ -85,6 +101,61 @@ module Combat
         actor:    :monster,
         damage:   damage,
         message:  "The #{MONSTERS[@type][:name]} hits you with a #{attack[:name]} that deals #{damage} hits." }
+    end
+
+
+    ############################################################################
+    # 6. REACTIONS :
+    ############################################################################
+    def hit(attack)
+      result  = case attack[:type]
+                when :physical_attack
+                  if defense > 0
+                    if defense >= attack[:damage]
+                      { damage:   0,
+                        message:  "The #{name}'s armor blocks all your damage..." }
+
+                    else
+                      damage  = attack[:damage] - defense
+                      message = "The #{name}'s armor blocks #{defense} damage. "\
+                                "You inflict #{damage} damage."
+                      { damage: damage, message: message }
+
+                    end
+
+                  else"You get hit for #{damage} damage." 
+                    { damage: attack[:damage],
+                      message:  "You inflict #{attack[:damage]} damage to the #{name}." }
+
+                  end
+
+                when :magic_attack
+                  if magic_defense > 0
+                    if magic_defense >= attack[:damage]
+                      { damage:   0,
+                        message:  "The #{name}'s magic armor blocks all your damage..." }
+
+                    else
+                      damage  = attack[:damage] - magic_defense
+                      message = "The #{name}'s magic armor blocks #{magic_defense} damage. "\
+                                "You inflict #{damage} magic damage."
+                      { damage: damage, message: message }
+
+                    end
+
+                  else
+                    { damage:   attack[:damage],
+                      message:  "You inflict #{attack[:damage]} magic damage to the #{name}." }
+
+                  end
+
+                end
+
+      @health -= result[:damage]
+
+      { type:     :monster_get_hit,
+        actor:    :monster,
+        message:  result[:message] }
     end
 
     def drop(dice)
