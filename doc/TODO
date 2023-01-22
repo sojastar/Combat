@@ -1,3 +1,5 @@
-- initiative for player and monsters DONE !
-- rationalize the "magic" and "magical" terminology in the code
-- experience and leveling up
+- Initiative for player and monsteras. DONE !
+- Rationalize the "magic" and "magical" terminology in the code.
+- Remove essential amror and magical armor from the player.
+  They should get from from equipment only.
+- Experience and leveling up.

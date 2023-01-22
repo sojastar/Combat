@@ -61,8 +61,9 @@ module Combat
     def alive?()  @health > 0   end
     def dead?()   @health <= 0  end
 
-    def begin_turn()            @state  = :begin_turn             end
+    def begin_turn() @state = :begin_turn end
     alias end_turn begin_turn
+
     def wait_for_action_input() @state  = :wait_for_action_input  end
     def wait_for_spell_input()  @state  = :wait_for_spell_input   end
     def wait_for_item_input()   @state  = :wait_for_item_input    end
@@ -224,18 +225,10 @@ module Combat
     def escape
       damage    = rand ( @max_health * 0.1 ).ceil
       @health  -= damage
-
-      if @health > 0
-        { type:     :player_escape,
-          actor:    :player,
-          message:  "You manage to escape but get hit in the back for #{damage} damage..." }
-
-      else
-        { type:     :player_escape,
-          actor:    :player,
-          message:  "You try to escape but get hit in the back for #{damage} damage..." }
-
-      end
+      
+      { type:     :player_escape,
+        actor:    :player,
+        message:  "You escape but get hit in the back for #{damage} damage..." }
     end
 
 

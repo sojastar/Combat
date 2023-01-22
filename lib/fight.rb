@@ -1,6 +1,7 @@
 module Combat
   class Fight
-    attr_accessor :is_on
+    attr_reader :player, :monster,
+                :is_on
 
     def initialize(player,monster)
       @player   = player
@@ -20,6 +21,7 @@ module Combat
       end
     end
 
+    #def switch_to_player()  @current_actor  = @player; @player.begin_turn   end
     def switch_to_player()  @current_actor  = @player   end
     def switch_to_monster() @current_actor  = @monster  end
 
@@ -30,13 +32,16 @@ module Combat
         should_print  = true
         case step[:type]
         when /attack/
-          hit = @monster.hit step
-          message += ' ' + hit[:message]
+          hit       = @monster.hit step
+          message  += ' ' + hit[:message]
 
         when /done/
           @player.end_turn
           switch_to_monster
           should_print = false
+
+        when /escape/
+          @is_on = false
 
         end
 

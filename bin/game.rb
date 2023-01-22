@@ -21,11 +21,11 @@ puts  'You enter the Labyrinth of Death! Beware the foul monsters roaming '\
       'its deadly corridors...'
 
 while true do
-  #monster = Combat::Monster.new_random_monster
-  monster = Combat::Monster.new_warlock
+  monster = Combat::Monster.new_random_monster
   puts "A #{monster.name} lurks out from the dark!!!"
 
   fight = Combat::Fight.new player, monster
+  pp fight.is_on
   while fight.is_on do
     step = fight.run
 
@@ -35,6 +35,8 @@ while true do
       puts 'You died...'
       exit(0)
     end
+
+    #break if fight.player.escaped
 
     if step[:monster_status] == :dead
       puts "You defeated the #{monster.name}! You can move on!"
