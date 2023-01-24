@@ -6,7 +6,7 @@ require_relative '../lib/monster.rb'
 require_relative '../lib/player.rb'
 require_relative '../lib/fight.rb'
 
-READ_DELAY  = 0.5
+READ_DELAY  = 1
 
 ATMOSPHERE  = [ "You keep walking down the poorly lit corridor...",
                 "The air is thick with a terrible smell of rotten flesh but you keep oving on.",
@@ -26,10 +26,15 @@ player  = Combat::Player.new  20,   # health
 
 puts  'You enter the Labyrinth of Death! Beware the foul monsters roaming '\
       'its deadly corridors...'
+sleep READ_DELAY
 
 while true do
+  puts ATMOSPHERE.sample
+  sleep READ_DELAY
+
   monster = Combat::Monster.new_random_monster
   puts "A #{monster.name} lurks out from the dark!!!"
+  sleep READ_DELAY
 
   fight = Combat::Fight.new player, monster
   while fight.is_on do
