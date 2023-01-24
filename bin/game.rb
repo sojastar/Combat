@@ -7,7 +7,10 @@ require_relative '../lib/player.rb'
 require_relative '../lib/fight.rb'
 
 READ_DELAY  = 0.5
-#START_MESSAGE = [ "A #
+
+ATMOSPHERE  = [ "You keep walking down the poorly lit corridor...",
+                "The air is thick with a terrible smell of rotten flesh but you keep oving on.",
+                "You progress along a stone tunnel carved with images of ungodly figures" ]
 
 player  = Combat::Player.new  20,   # health
                               10,   # mana
