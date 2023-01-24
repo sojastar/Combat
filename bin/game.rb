@@ -10,7 +10,12 @@ READ_DELAY  = 0.5
 
 ATMOSPHERE  = [ "You keep walking down the poorly lit corridor...",
                 "The air is thick with a terrible smell of rotten flesh but you keep oving on.",
-                "You progress along a stone tunnel carved with images of ungodly figures" ]
+                "You progress along a stone tunnel carved with images of ungodly figures",
+                "The passage gets narrower with each step but you manage to go through "\
+                "and emerge in a vast opening.",
+                "You walk in a great hall, amidst idols so gigantic you can't make out their features",
+                "In the distance, you can hear echoing screams of pain.",
+                "You walk in what was once a lush garden, its trees now all desiccated, its fruits all roten." ]
 
 player  = Combat::Player.new  20,   # health
                               10,   # mana
