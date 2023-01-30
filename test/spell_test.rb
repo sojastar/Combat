@@ -25,6 +25,10 @@ describe Combat::Spell do
     assert_equal "War Cry", @ra.name
   end
 
+  it 'knows its intelligence requirement value' do
+    assert_equal  4, @f.required_intelligence
+  end
+
   it 'can be a defense buff' do
     assert            @rd.defense_spell?
     assert_equal  2,  @rd.defense

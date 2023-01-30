@@ -123,7 +123,7 @@ describe Combat::Item do
     i3  = Combat::Item.new_amulet
     i4  = Combat::Item.new_blowpipe
     l   = [ i1, i2, i3, i4 ]
-    ul  = Combat::Item.usable l
+    ul  = Combat::Item.can_use l
 
     assert_includes ul, i2
     assert_includes ul, i4
