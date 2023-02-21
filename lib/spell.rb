@@ -3,41 +3,51 @@ module Combat
     ############################################################################
     # 1. CONSTANTS :
     ############################################################################
-    SPELLS  = { fire_ball:    { name:     'Fire Ball',
-                                cost:     3,
-                                duration: 0,
-                                effects:  [ { category: :magic_attack,
-                                              hit_range: 4..6 } ] },
-                heal:         { name:     'Heal',
-                                cost:     2,
-                                duration: 0,
-                                effects:  [ { category:   :refill,
-                                              attribute:  :health,
-                                              value:      5..10 } ] },
-                raise_defense:        { name:     'Shield',
-                                        cost:     2,
-                                        duration: 3,
-                                        effects:  [ { category:   :buff,
-                                                      attribute:  :defense,
-                                                      value:      2 } ] },
-                raise_magic_defense:  { name:     'Magic Barrier',
-                                        cost:     2,
-                                        duration: 3,
-                                        effects:  [ { category:   :buff,
-                                                      attribute:  :magic_defense,
-                                                      value:      2 } ] },
-                raise_attack:         { name:     'War Cry',
-                                        cost:     2,
-                                        duration: 3,
-                                        effects:  [ { category:   :buff,
-                                                      attribute:  :attack,
-                                                      value:      2 } ] },
-                raise_magic_attack:   { name:     'Secret Ritual',
-                                        cost:     2,
-                                        duration: 3,
-                                        effects:  [ { category:   :buff,
-                                                      attribute:  :magic_attack,
-                                                      value:      2 } ] } }
+    SPELLS  = { fire_ball:            { name:         'Fire Ball',
+                                        intelligence: 4,
+                                        cost:         3,
+                                        effects:      [ { type: :action, on: :magic_attack, value: 3..5 } ] },
+                poison:               { name:         'Poison',
+                                        intelligence: 3,
+                                        cost:         2,
+                                        effects:      [ { type: :action, on: :ailment, ailment: :poison, value: 1..3, turns: 3 } ] },
+                heal:                 { name:         'Heal',
+                                        intelligence: 2,
+                                        cost:         3,
+                                        effects:      [ { type: :action, on: :heal, value: 7..12 } ] },
+                raise_defense:        { name:         'Shield',
+                                        intelligence: 3,
+                                        cost:         2,
+                                        effects:      [ { type: :buff, on: :defense, value: 2..2, turns: 3 } ] },
+                raise_magic_defense:  { name:         'Magic Barrier',
+                                        intelligence: 4,
+                                        cost:         2,
+                                        effects:      [ { type: :buff, on: :magic_defense, value: 2..2, turns: 3 } ] },
+                raise_attack:         { name:         'War Cry',
+                                        intelligence: 3,
+                                        cost:         2,
+                                        effects:      [ { type: :buff, on: :attack, value: 2..3, turns: 3 } ] },
+                raise_magic_attack:   { name:         'Secret Ritual',
+                                        intelligence: 4,
+                                        cost:         2,
+                                        effects:      [ { type: :buff, on: :magic_attack, value: 2..4, turns: 3 } ] } }
+
+
+    def self.name(spell)
+      SPELLS[spell][:name]
+    end
+
+    def self.cost(spell)
+      SPELLS[spell][:cost]
+    end
+
+    def self.can_cast?(intelligence,spell)
+      intelligence >= SPELLS[spell][:intelligence]
+    end
+
+    def self.effects(spell)
+      SPELLS[spell][:effects]
+    end
     
 
     ############################################################################
@@ -59,7 +69,8 @@ module Combat
     ############################################################################
     # 3. OTHER ACCESSORS :
     ############################################################################
-    def name() SPELLS[@type][:name] end
+    def name()                  SPELLS[@type][:name]          end
+    def required_intelligence() SPELLS[@type][:intelligence]  end
 
     def defense_spell?
       SPELLS[@type][:effects].any? do |effect|
@@ -119,6 +130,10 @@ module Combat
       .inject(0) { |total,effect|
         total + effect[:value]
       }
+    end
+
+    def can_cast(list, intelligence)
+      list.filter { |spell| spell[:intelligence] <= intelligence }
     end
 
 

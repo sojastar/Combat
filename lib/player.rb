@@ -6,9 +6,9 @@ module Combat
     ACTIONS = [ { text:   '(a)ttack',
                   key:    'a',
                   method: :attack },
-                #{ text:   '(C)ast spell',
-                #  key:    'c',
-                #  method: :cast },
+                { text:   '(C)ast spell',
+                  key:    'c',
+                  method: :cast },
                 { text:   '(u)se item',
                   key:    'u',
                   method: :use },
@@ -27,7 +27,7 @@ module Combat
                 :strength,
                 :intelligence,
                 :items,
-                :spells
+                :spells, :active_spells
 
 
     ############################################################################
@@ -44,7 +44,8 @@ module Combat
       @intelligence   = intelligence
 
       @items          = items.map { |item_type| Combat::Item.new item_type }
-      @spells         = [] # for now !
+      @spells         = spells
+      @active_spells  = []
 
       turn_begin
     end
@@ -106,13 +107,14 @@ module Combat
           wait_for_spell_input 
           
           { type:     :player_waits_for_input,
-            message:  choices(@spells, 'No spells') + ' | (Esc) Cancel' }
+            message:  choices(Spell.can_cast(@spells, @intelligence), 'No spells') +
+                      ' | (Esc) Cancel' }
 
         when 'u'    # Use
           wait_for_item_input
           
           { type:     :player_waits_for_input,
-            message:  choices(Item.usable(@items), 'No items') + ' | (Esc) Cancel' }
+            message:  choices(Item.can_use(@items), 'No items') + ' | (Esc) Cancel' }
 
         when 'e'    # Escape
           done_waiting
@@ -121,6 +123,19 @@ module Combat
         end
 
       when is_waiting_for_spell_input?
+        spell_key = STDIN.getch
+
+        if spell_key == "\e"
+          wait_for_action_input
+
+          { type:     :player_cancel,
+            message:  status + ' | ' + menu }
+
+        else
+          done_waiting
+          cast Spell.can_cast(@spells, @intelligence).at(char_to_index(spell_key))
+
+        end
 
       when is_waiting_for_item_input?
         item_key  = STDIN.getch
@@ -129,11 +144,11 @@ module Combat
           wait_for_action_input
 
           { type:     :player_cancel,
-            message:  status + " | " + menu }
+            message:  status + ' | ' + menu }
 
         else
           done_waiting
-          use Item.usable(@items).at(char_to_index(item_key))
+          use Item.can_use(@items).at(char_to_index(item_key))
 
         end
 
@@ -181,49 +196,47 @@ module Combat
     end
 
     def cast(spell)
+      @mana -= Spell::SPELLS[spell][:cost]
     end
 
     def use(item)
-      item_template = Combat::Item::ITEMS[item.type]
-
-      type    = :player_use_object
-      damage  = 0
-      message = "You use the #{item_template[:name]}."
-
-      item_template[:effects].each do |effect|
-        case effect[:category]
-        when :modifier
-          case effect[:attribute]
-          when :health
-            @health   = [ @max_health, @health + effect[:value] ].min
-            message  += " Your health is now at #{@health}."
-          when :mana
-            @mana     = [ @max_mana,   @mana   + effect[:value] ].min
-            message  += " Your mana is now at #{@mana}."
-          end
-
-        when :attack
-          type      = :attack
-          damage    = rand(effect[:hits_range])
-          message  += " You deal #{damage} hits!" 
-
-        when :magic_attack
-          type      = :magic_attack
-          damage    = rand(effect[:hits_range])
-          message  += " You deal #{damage} hits!" 
-
-        end
-      end
-
+      # Consume the object if necessary :
       if item.usable?
         item.use
         @items.delete(item) if item.depleted?
       end
+      item_template = Combat::Item::ITEMS[item.type]
 
-      { type:     type,
+      # Apply the object effect :
+      effects = item_template[:effects].map do |effect|
+                  case effect[:category]
+                  when :modifier
+                    case effect[:attribute]
+                    when :health
+                      @health   = [ @max_health, @health + effect[:value] ].min
+                      { type: :use, damage: 0, message: " Your health is now at #{@health}." }
+
+                    when :mana
+                      @mana     = [ @max_mana,   @mana   + effect[:value] ].min
+                      { type: :use, damage: 0, message: " Your mana is now at #{@mana}." }
+
+                    end
+
+                  when :attack
+                    damage    = rand(effect[:hits_range])
+                    { type: :attack, damage: damage, message: " You deal #{damage} hits!"  }
+
+                  when :magic_attack
+                    damage    = rand(effect[:hits_range])
+                    { type: :magic_attack, damage: damage, message: " You deal #{damage} hits!"  }
+
+                  end
+                end
+
+      { type:     :use,
         actor:    :player,
-        damage:   damage,
-        message:  message }
+        message:  "You use the #{item_template[:name]}.",
+        effects:  effects }
     end
 
     def escape
