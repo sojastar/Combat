@@ -22,7 +22,7 @@ module Combat
 
         ### Reactions :
         got_hit:        nil,
-        get_magic_hit:  nil,
+        got_magic_hit:  nil,
         got_heal:       nil,
         add_ailment:    nil,
         got_ailment:    nil,
@@ -171,13 +171,13 @@ module Combat
       message
     end
 
-    def self.new_get_magic_hit(parent,targets)
+    def self.new_got_magic_hit(parent,targets)
       message = new_empty
 
-      message[:type]          = :get_magic_hit
+      message[:type]          = :got_magic_hit
       message[:parent]        = parent
       message[:targets]       = targets
-      message[:get_magic_hit] = { equipment_magic_defense:  [],
+      message[:got_magic_hit] = { equipment_magic_defense:  [],
                                   buff_magic_defense:       0,
                                   magic_damage:             0,
                                   ailments:                 [],

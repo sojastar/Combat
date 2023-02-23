@@ -20,7 +20,7 @@ describe Combat::Message do
     assert_nil    message[:add_mana]
     assert_nil    message[:wait]
     assert_nil    message[:got_hit]
-    assert_nil    message[:get_magic_hit]
+    assert_nil    message[:got_magic_hit]
     assert_nil    message[:got_heal]
     assert_nil    message[:add_ailment]
     assert_nil    message[:add_buff]
@@ -136,17 +136,17 @@ describe Combat::Message do
     assert_equal  0,  message[:got_hit][:total_damage]
   end
 
-  it 'can create an empty get_magic_hit message' do
-    message = Combat::Message.new_get_magic_hit :a_parent, :some_targets
+  it 'can create an empty got_magic_hit message' do
+    message = Combat::Message.new_got_magic_hit :a_parent, :some_targets
 
-    assert_equal  :get_magic_hit, message[:type]           
+    assert_equal  :got_magic_hit, message[:type]           
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  0,  message[:get_magic_hit][:buff_magic_defense]
-    assert_equal  0,  message[:get_magic_hit][:magic_damage]
-    assert_equal [],  message[:get_magic_hit][:ailments]
-    assert_nil        message[:get_magic_hit][:spell]
+    assert_equal  0,  message[:got_magic_hit][:buff_magic_defense]
+    assert_equal  0,  message[:got_magic_hit][:magic_damage]
+    assert_equal [],  message[:got_magic_hit][:ailments]
+    assert_nil        message[:got_magic_hit][:spell]
   end
 
   it 'can create an empty get heal message' do

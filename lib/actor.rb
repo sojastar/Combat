@@ -135,7 +135,7 @@ module Combat
                             magic_weapons:    magic_weapons,
                             magic_damage:     magic_damage,
                             ailments:         ailments }
-      message
+      [ message ]
     end
 
     ### 6.2 Cast :
@@ -208,7 +208,6 @@ module Combat
                             defense + Equipment.defense_value(piece)
                           }
 
-      #buff_defense  = @active_effects.filter { |effect|
       buff_defense  = @active_buffs.filter { |effect|
                        effect[:on] == :defense
                       }
@@ -230,7 +229,6 @@ module Combat
                                   defense + Equipment.magic_defense_value(piece)
                                 }
 
-      #buff_magic_defense  = @active_effects.filter { |effect|
       buff_magic_defense  = @active_buffs.filter { |effect|
                               effect[:on] == :magic_defense
                             }
@@ -245,16 +243,14 @@ module Combat
 
       ### Ailments :
       new_ailments  = attack[:ailments].map { |ailment| ailment.dup }
-      #new_ailments.each { |ailment| resolve_effect ailment }
       new_ailments.each { |ailment| @active_ailments << ailment }
-
-      #@active_effects += new_ailments
-      #@active_ailments += new_ailments
 
       ### Final damage calculation :
       total_damage  = physical_damage + magic_damage
       @health      -= total_damage
+      @health       = 0 if @health < 0
 
+      ### Message :
       message           = Message.new_got_hit self, nil 
       message[:got_hit] = { hit_attack:               attack,
                             equipment_defense:        equipment_defense,
@@ -265,14 +261,50 @@ module Combat
                             magic_damage:             magic_damage,
                             ailments:                 new_ailments,
                             total_damage:             total_damage }
-      message
+      [ message ]
     end
     alias hit got_hit
 
     ### 8.2 Get Magic Hit :
-    def get_magic_hit(message)
-      message = Message.new_get_magic_hit self, [ self ]
+    def got_magic_hit(message)
+      ### Magic damage :
+      equipment_magic_defense = @equipment.filter { |piece|
+                                  Equipment.has_magic_defense_value? piece
+                                }
+                                .inject(0) { |defense,piece|
+                                  defense + Equipment.magic_defense_value(piece)
+                                }
+
+      buff_magic_defense  = @active_buffs.filter { |effect|
+                              effect[:on] == :magic_defense
+                            }
+                            .inject(0) { |defense,effect|
+                              defense + rand(effect[:value])
+                            }
+
+      magic_damage  = [ 0, 
+                        message[:magic_attack][:magic_damage]   -
+                        equipment_magic_defense -
+                        buff_magic_defense ].max
+
+      ### Ailments :
+      new_ailments  = message[:magic_attack][:ailments].map { |ailment| ailment.dup }
+      new_ailments.each { |ailment| @active_ailments << ailment }
+
+      ### Final damage calculation :
+      @health  -= magic_damage
+      @health   = 0 if @health < 0
+
+      message                 = Message.new_got_magic_hit self, nil
+      message[:got_magic_hit] = { equipment_magic_defense:  equipment_magic_defense,
+                                  buff_magic_defense:       buff_magic_defense,
+                                  magic_damage:             magic_damage,
+                                  ailments:                 new_ailments,
+                                  spell:                    message[:spell] }
+
+      [ message ]
     end
+    alias magic_hit got_magic_hit
 
     ### 8.4 Heal :
     def heal(message)
@@ -289,7 +321,7 @@ module Combat
       message             = Message.new_got_heal self, nil
       message[:got_heal]  = { amount: heal_amount,
                               health: @health }
-      message
+      [ message ]
     end
 
     ### 8.5 Add Buff :
@@ -298,7 +330,7 @@ module Combat
 
       message             = Message.new_got_buff self, nil
       message[:got_buff]  = { buff: message[:add_buff][:buff] }
-      message
+      [ message ]
     end
 
     ### 8.3 Add Ailment :
@@ -307,7 +339,7 @@ module Combat
 
       message               = Message.new_got_ailment self, nil 
       message[:got_ailment] = { ailment: message[:add_ailment][:ailment] }
-      message
+      [ message ]
     end
 
     ### 8.7 Add Mana :
