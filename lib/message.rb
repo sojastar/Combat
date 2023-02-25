@@ -198,28 +198,6 @@ module Combat
       message
     end
 
-    def self.new_add_ailment(parent,targets)
-      message = new_empty
-
-      message[:type]        = :add_ailment
-      message[:parent]      = parent
-      message[:targets]     = targets
-      message[:add_ailment] = { ailment: nil }
-
-      message
-    end
-
-    def self.new_got_ailment(parent,targets)
-      message = new_empty
-
-      message[:type]        = :got_ailment
-      message[:parent]      = parent
-      message[:targets]     = targets
-      message[:got_ailment] = { ailment: nil }
-
-      message
-    end
-
     def self.new_add_buff(parent,targets)
       message = new_empty
 
@@ -238,6 +216,28 @@ module Combat
       message[:parent]    = parent
       message[:targets]   = targets
       message[:got_buff]  = { buff: nil }
+
+      message
+    end
+
+    def self.new_add_ailment(parent,targets)
+      message = new_empty
+
+      message[:type]        = :add_ailment
+      message[:parent]      = parent
+      message[:targets]     = targets
+      message[:add_ailment] = { ailment: nil }
+
+      message
+    end
+
+    def self.new_got_ailment(parent,targets)
+      message = new_empty
+
+      message[:type]        = :got_ailment
+      message[:parent]      = parent
+      message[:targets]     = targets
+      message[:got_ailment] = { ailment: nil }
 
       message
     end

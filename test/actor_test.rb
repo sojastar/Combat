@@ -68,7 +68,7 @@ describe Combat::Actor do
     @actor.equipment << :long_sword
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
-    response        = @actor.attack(attack_message).first
+    response        = @actor.attack attack_message
 
     assert_equal  :attack,              response[:type]
     assert_equal  @actor,               response[:parent]
@@ -88,7 +88,7 @@ describe Combat::Actor do
     @actor.equipment << :magic_sword
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
-    response        = @actor.attack(attack_message).first
+    response        = @actor.attack attack_message
 
     assert_equal  :attack,              response[:type]
     assert_equal  @actor,               response[:parent]
@@ -108,7 +108,7 @@ describe Combat::Actor do
     @actor.equipment << :poisoned_dagger
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
-    response        = @actor.attack(attack_message).first
+    response        = @actor.attack attack_message
 
     assert_equal  :attack,              response[:type]
     assert_equal  @actor,               response[:parent]
@@ -168,7 +168,8 @@ describe Combat::Actor do
                                 magic_weapons:    [],
                                 magic_damage:     0,
                                 ailments:         [] }
-    response                = @actor.hit(attack_message).first
+  
+    response                = @actor.got_hit attack_message
 
     assert_equal  :got_hit,   response[:type]
     assert_equal  @actor,     response[:parent]
@@ -199,7 +200,7 @@ describe Combat::Actor do
                                 magic_damage:     5,
                                 ailments:         [] }
     
-    response                = @actor.hit(attack_message).first
+    response                = @actor.got_hit attack_message
 
     assert_equal  :got_hit,   response[:type]
     assert_equal  @actor,     response[:parent]
@@ -230,7 +231,7 @@ describe Combat::Actor do
                                 magic_damage:     0,
                                 ailments:         [ Combat::Equipment::PIECES[:poisoned_dagger][:effects].last ] }
     
-    response  = @actor.hit(attack_message).first
+    response                = @actor.got_hit attack_message
 
     assert_equal  :got_hit,   response[:type]
     assert_equal  @actor,     response[:parent]
@@ -250,19 +251,42 @@ describe Combat::Actor do
 
   ### 3.2 Getting magic hit (or hit with magic, if you prefere) :
   it 'gets hit with magic attacks' do
-    magic_attack_message  = Combat::Message.new_magic_attack :a_parent, [ @actor ]
+    # Prep the actor to test equipment and buff influence on magic attack :
+    @actor.equipment << :magic_helm
+    buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
+    spell                   = Combat::Spell::SPELLS[:raise_magic_defense]
+    buff                    = spell[:effects].first
+    buff_message[:add_buff] = { name:   spell[:name],
+                                on:     buff[:on],
+                                value:  rand(buff[:value]),
+                                turns:  buff[:turns] }
+    buff_response           = @actor.add_buff buff_message
+
+    # Attack :
+    magic_attack_message                = Combat::Message.new_magic_attack :a_parent, [ @actor ]
+    spell                               = Combat::Spell::SPELLS[:fire_ball]
     magic_attack_message[:magic_attack] = { magic_damage: 10,
                                             ailments:     [],
-                                            spell:        Combat::Spell::SPELLS[:fire_ball] }
+                                            spell:        spell }
     
-    response  = @actor.got_magic_hit(magic_attack_message).first
+    response  = @actor.got_magic_hit magic_attack_message
+
+    assert_equal  :got_magic_hit, response[:type]
+    assert_equal  @actor,         response[:parent]
+    assert_nil                    response[:targets]
+
+    assert_equal  1,      response[:got_magic_hit][:equipment_magic_defense]
+    assert_equal  2,      response[:got_magic_hit][:buff_magic_defense]
+    assert_equal  7,      response[:got_magic_hit][:magic_damage]
+    assert_empty          response[:got_magic_hit][:ailments]
+    assert_equal  spell,  response[:got_magic_hit][:spell]
+  end 
+
+  it 'gets hit with magic attacks that also provoke ailments' do
+     
   end
 
-  it 'gets hit with magic attacks that also prokoke ailments' do
-    
-  end
-
-  ### 3.3 Heal :
+  ### 3.4 Heal :
   it 'heals' do
     hit_message           = Combat::Message.new_attack :a_parent, [ @actor ]
     hit_message[:attack]  = { strength_damage:  2,
@@ -271,13 +295,13 @@ describe Combat::Actor do
                               magic_weapons:    [],
                               magic_damage:     0,
                               ailments:         [] }
-    hit_response          = @actor.hit(hit_message).first
+    hit_response          = @actor.hit hit_message
 
     actor_health_before = @actor.health
     heal_amount         = 5
     heal_message        = Combat::Message.new_heal :another_parent, [ @actor ]
     heal_message[:heal] = { amount: heal_amount }
-    response            = @actor.heal(heal_message).first
+    response            = @actor.heal heal_message
 
     assert_equal  :got_heal,  response[:type]
     assert_equal  @actor,     response[:parent]
@@ -299,20 +323,45 @@ describe Combat::Actor do
                               magic_weapons:    [],
                               magic_damage:     0,
                               ailments:         [] }
-    hit_response          = @actor.hit(hit_message).first
+    hit_response          = @actor.hit hit_message
 
     heal_amount         = strength_damage + weapon_damage + 1
     heal_message        = Combat::Message.new_heal :another_parent, [ @actor ]
     heal_message[:heal] = { amount: heal_amount }
-    response            = @actor.heal(heal_message).first
+    response            = @actor.heal heal_message
 
     assert_equal  :got_heal,  response[:type]
     assert_equal  @actor,     response[:parent]
-    assert_nil                response[:target]
+    assert_nil                response[:targets]
 
     assert_equal  @actor.max_health,  @actor.health
 
     assert_equal  strength_damage + weapon_damage,  response[:got_heal][:amount]
     assert_equal  @actor.max_health,                response[:got_heal][:health]
+  end
+
+  ### 8.4 Add Buff :
+  it 'can get buffs' do
+    buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
+    spell                   = Combat::Spell::SPELLS[:raise_attack]
+    buff                    = spell[:effects].first
+    buff_message[:add_buff] = { name:   spell[:name],
+                                on:     buff[:on],
+                                value:  rand(buff[:value]),
+                                turns:  buff[:turns] }
+    response                = @actor.add_buff buff_message
+     
+    assert_includes @actor.active_buffs, buff_message[:add_buff]  
+
+    assert_equal    :got_buff,  response[:type]
+    assert_equal    @actor,     response[:parent]
+    assert_nil                  response[:targets]
+
+    assert_equal    buff_message[:add_buff],  response[:got_buff]
+  end
+
+  ### 8.5 Add Ailments :
+  it 'can get ailments' do
+     
   end
 end

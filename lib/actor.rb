@@ -42,7 +42,6 @@ module Combat
       @items            = params[:items].map { |item_type| Combat::Item.new item_type }
       @spells           = params[:spells]
       
-      #@active_effects = []
       @active_buffs     = []
       @active_ailments  = []
 
@@ -128,45 +127,56 @@ module Combat
                              .map { |piece| Equipment.ailment_effects piece }
                              .flatten
 
-      message           = Message.new_attack self, message[:targets]
-      message[:attack]  = { strength_damage:  strength_damage,
-                            weapons:          weapons,
-                            weapon_damage:    weapon_damage,
-                            magic_weapons:    magic_weapons,
-                            magic_damage:     magic_damage,
-                            ailments:         ailments }
-      [ message ]
+      response            = Message.new_attack self, message[:targets]
+      response[:attack]   = { strength_damage:  strength_damage,
+                             weapons:          weapons,
+                             weapon_damage:    weapon_damage,
+                             magic_weapons:    magic_weapons,
+                             magic_damage:     magic_damage,
+                             ailments:         ailments }
+      response
     end
 
     ### 6.2 Cast :
     def cast(message)
       spell = message[:param]
-      Spell.effects(spell).map do |effect|
-        case effect[:type]
-        when :action
-          case effect[:on]
-          when :magic_attack
-            Message.new_magic_attack self, message[:targets]
-            message[:magic_attack]  = { magic_damage: rand(effect[:value]),
-                                        spell:        spell }
 
-          when :ailment
-            Message.new_add_ailment self, message[:targets]
-            message[:add_ailment] = { ailment: nil } # FOR NOW !!!
+      sub_messages  = Spell.effects(spell).map do |effect|
+                        case effect[:type]
+                        when :action
+                          case effect[:on]
+                          when :magic_attack
+                            Message.new_magic_attack self, message[:targets]
+                            message[:magic_attack]  = { magic_damage: rand(effect[:value]),
+                                                        spell:        spell }
 
-          when :heal
-            Message.new_heal self, message[:targets]
-            message[:heal]  = { amount: rand(effect[:value]) }
-          end
+                          when :ailment
+                            Message.new_add_ailment self, message[:targets]
+                            message[:add_ailment] = { ailment: nil } # FOR NOW !!!
 
-        when :buff
-            Message.new_buff self, message[:targets]
-            message[:add_buff]  = { type:   effect[:type],
-                                    on:     effect[:on], 
-                                    value:  rand(effect[:value]),
-                                    turns:  effect[:turns] }
-        end
-      end
+                          when :heal
+                            Message.new_heal self, message[:targets]
+                            message[:heal]  = { amount: rand(effect[:value]) }
+                          end
+
+                        when :buff
+                            Message.new_add_buff self, message[:targets]
+                            #message[:add_buff]  = { type:   effect[:type],
+                            #                        on:     effect[:on], 
+                            #                        value:  rand(effect[:value]),
+                            #                        turns:  effect[:turns] }
+                            message[:add_buff]  = { name:   spell[:name],
+                                                    on:     effect[:on], 
+                                                    value:  rand(effect[:value]),
+                                                    turns:  effect[:turns] }
+                        end
+
+
+                      end
+
+      response                        = Combat.new_cast self, message[:targets]
+      response[:cast][:sub_messages]  = sub_messages
+      response
     end
 
     ### 6.3 Use :
@@ -208,11 +218,11 @@ module Combat
                             defense + Equipment.defense_value(piece)
                           }
 
-      buff_defense  = @active_buffs.filter { |effect|
-                       effect[:on] == :defense
+      buff_defense  = @active_buffs.filter { |buff|
+                       buff[:on] == :defense
                       }
-                      .inject(0) { |defense,effect|
-                        defense + rand(effect[:value])
+                      .inject(0) { |defense,buff|
+                        defense + rand(buff[:value])
                       }
 
       physical_damage = [ 0, 
@@ -229,11 +239,11 @@ module Combat
                                   defense + Equipment.magic_defense_value(piece)
                                 }
 
-      buff_magic_defense  = @active_buffs.filter { |effect|
-                              effect[:on] == :magic_defense
+      buff_magic_defense  = @active_buffs.filter { |buff|
+                              buff[:on] == :magic_defense
                             }
-                            .inject(0) { |defense,effect|
-                              defense + rand(effect[:value])
+                            .inject(0) { |defense,buff|
+                              defense + rand(buff[:value])
                             }
 
       magic_damage  = [ 0, 
@@ -251,17 +261,17 @@ module Combat
       @health       = 0 if @health < 0
 
       ### Message :
-      message           = Message.new_got_hit self, nil 
-      message[:got_hit] = { hit_attack:               attack,
-                            equipment_defense:        equipment_defense,
-                            buff_defense:             buff_defense,
-                            physical_damage:          physical_damage,
-                            equipment_magic_defense:  equipment_magic_defense,
-                            buff_magic_defense:       buff_magic_defense,
-                            magic_damage:             magic_damage,
-                            ailments:                 new_ailments,
-                            total_damage:             total_damage }
-      [ message ]
+      response            = Message.new_got_hit self, nil 
+      response[:got_hit]  = { hit_attack:               attack,
+                              equipment_defense:        equipment_defense,
+                              buff_defense:             buff_defense,
+                              physical_damage:          physical_damage,
+                              equipment_magic_defense:  equipment_magic_defense,
+                              buff_magic_defense:       buff_magic_defense,
+                              magic_damage:             magic_damage,
+                              ailments:                 new_ailments,
+                              total_damage:             total_damage }
+      response
     end
     alias hit got_hit
 
@@ -275,11 +285,11 @@ module Combat
                                   defense + Equipment.magic_defense_value(piece)
                                 }
 
-      buff_magic_defense  = @active_buffs.filter { |effect|
-                              effect[:on] == :magic_defense
+      buff_magic_defense  = @active_buffs.filter { |buff|
+                              buff[:on] == :magic_defense
                             }
-                            .inject(0) { |defense,effect|
-                              defense + rand(effect[:value])
+                            .inject(0) { |defense,buff|
+                              defense + buff[:value]
                             }
 
       magic_damage  = [ 0, 
@@ -295,18 +305,18 @@ module Combat
       @health  -= magic_damage
       @health   = 0 if @health < 0
 
-      message                 = Message.new_got_magic_hit self, nil
-      message[:got_magic_hit] = { equipment_magic_defense:  equipment_magic_defense,
-                                  buff_magic_defense:       buff_magic_defense,
-                                  magic_damage:             magic_damage,
-                                  ailments:                 new_ailments,
-                                  spell:                    message[:spell] }
+      response                  = Message.new_got_magic_hit self, nil
+      response[:got_magic_hit]  = { equipment_magic_defense:  equipment_magic_defense,
+                                    buff_magic_defense:       buff_magic_defense,
+                                    magic_damage:             magic_damage,
+                                    ailments:                 new_ailments,
+                                    spell:                    message[:magic_attack][:spell] }
 
-      [ message ]
+      response
     end
     alias magic_hit got_magic_hit
 
-    ### 8.4 Heal :
+    ### 8.3 Heal :
     def heal(message)
       amount  = message[:heal][:amount]
 
@@ -318,31 +328,31 @@ module Combat
         @health     = @max_health
       end
 
-      message             = Message.new_got_heal self, nil
-      message[:got_heal]  = { amount: heal_amount,
+      response            = Message.new_got_heal self, nil
+      response[:got_heal] = { amount: heal_amount,
                               health: @health }
-      [ message ]
+      response
     end
 
-    ### 8.5 Add Buff :
-    def buff(effect)
-      @active_buffs << message[:add_buff][:buff]
+    ### 8.4 Add Buff :
+    def add_buff(message)
+      @active_buffs << message[:add_buff]
 
-      message             = Message.new_got_buff self, nil
-      message[:got_buff]  = { buff: message[:add_buff][:buff] }
-      [ message ]
+      response            = Message.new_got_buff self, nil
+      response[:got_buff] = message[:add_buff]
+      response
     end
 
-    ### 8.3 Add Ailment :
+    ### 8.5 Add Ailment :
     def add_ailment(message)
       @active_ailments << ailment = message[:add_ailment][:ailment]
 
-      message               = Message.new_got_ailment self, nil 
-      message[:got_ailment] = { ailment: message[:add_ailment][:ailment] }
-      [ message ]
+      response                = Message.new_got_ailment self, nil 
+      response[:got_ailment]  = { ailment: message[:add_ailment][:ailment] }
+      response
     end
 
-    ### 8.7 Add Mana :
+    ### 8.6 Add Mana :
     def add_mana(message)
     end
 

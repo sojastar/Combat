@@ -160,26 +160,6 @@ describe Combat::Message do
     assert_equal  -1, message[:got_heal][:health]
   end
 
-  it 'can create an empty add ailment message' do
-    message = Combat::Message.new_add_ailment :a_parent, :some_targets
-
-    assert_equal  :add_ailment,   message[:type]           
-    assert_equal  :a_parent,      message[:parent]
-    assert_equal  :some_targets,  message[:targets]
-
-    assert_nil  message[:add_ailment][:ailment]
-  end
-
-  it 'can create an empty got ailment message' do
-    message = Combat::Message.new_got_ailment :a_parent, :some_targets
-
-    assert_equal  :got_ailment,   message[:type]           
-    assert_equal  :a_parent,      message[:parent]
-    assert_equal  :some_targets,  message[:targets]
-
-    assert_nil  message[:got_ailment][:ailment]
-  end
-
   it 'can create an empty add buff message' do
     message = Combat::Message.new_add_buff :a_parent, :some_targets
 
@@ -198,6 +178,26 @@ describe Combat::Message do
     assert_equal  :some_targets,  message[:targets]
 
     assert_nil  message[:got_buff][:buff]
+  end
+
+  it 'can create an empty add ailment message' do
+    message = Combat::Message.new_add_ailment :a_parent, :some_targets
+
+    assert_equal  :add_ailment,   message[:type]           
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+
+    assert_nil  message[:add_ailment][:ailment]
+  end
+
+  it 'can create an empty got ailment message' do
+    message = Combat::Message.new_got_ailment :a_parent, :some_targets
+
+    assert_equal  :got_ailment,   message[:type]           
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+
+    assert_nil  message[:got_ailment][:ailment]
   end
 
   it 'can create a receive message' do
