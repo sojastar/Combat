@@ -4,7 +4,7 @@ module Combat
                                     effects:    [ { type: :buff, on: :attack, value: 2 } ] },
                 poisoned_dagger:  { name:       "Poisoned Dagger",
                                     effects:    [ { type: :buff, on: :attack, value: 1 },
-                                                  { type: :ailment, on: :health, value: 1..3, turns: 3 } ] },
+                                                  { type: :ailment, name: 'poison', on: :health, value: 1..3, turns: 3 } ] },
                 magic_sword:      { name:       "Magic Sword",
                                     effects:    [ { type: :buff, on: :attack, value: 1 },
                                                   { type: :buff, on: :magic_attack, value: 1 } ] },

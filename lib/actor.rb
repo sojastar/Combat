@@ -115,12 +115,12 @@ module Combat
     def attack(message)
       strength_damage   = rand(0..@strength)
 
-      weapons       = @equipment.select { |piece| Equipment.has_attack_value? piece }
+      weapons       = @equipment.select { |piece| Equipment.raise_attack? piece }
       weapon_damage = weapons.inject(0) { |damage,weapon|
         damage + Equipment.attack_value(weapon)
       }
 
-      magic_weapons = @equipment.select { |piece| Equipment.has_magic_attack_value? piece }
+      magic_weapons = @equipment.select { |piece| Equipment.raise_magic_attack? piece }
       magic_damage  = magic_weapons.inject(0) { |damage,weapon|
         damage + Equipment.magic_attack_value(weapon)
       }
