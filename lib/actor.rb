@@ -61,27 +61,15 @@ module Combat
     ############################################################################
     # 5. EFFECTS, BUFFS and AILMENTS :
     ############################################################################
-    ############################################################################
-    # 6. TICK - RUN - UPDATE (whatever you fancy) :
-    ############################################################################
-    def update()
-      @can_play = true # but maybe an ailment will change that...
-
-      resolve_ailements
-
-      # OVERRIDE BUT DON'T FORGET TO CALL super !
-    end
-
-    def castable_spells
-      @spells.select { |spell|
-        Spell.can_cast?(@intelligence, active_spell) &&
-        Spell.cost(spell) <= @mana
-      }
+    def active_effect_from(source_name, effect)
+      { source: source_name,
+        on:     effect[:on], 
+        value:  rand(effect[:value]),
+        turns:  effect[:turns] }
     end
 
     def resolve_ailements
-      @active_effects.each do |effect|
-      end
+      @active_ailments.each { |effect| resolve_ailement ailment }
     end
 
     def resolve_ailement(ailment)
@@ -101,15 +89,29 @@ module Combat
 
 
     ############################################################################
-    # 6. RESPONSES :
+    # 6. TICK - RUN - UPDATE (whatever you fancy) :
     ############################################################################
+    def update()
+      @can_play = true # but maybe an ailment will change that...
+
+      resolve_ailements
+
+      # OVERRIDE BUT DON'T FORGET TO CALL super !
+    end
+
+    def castable_spells
+      @spells.select { |spell|
+        Spell.can_cast?(@intelligence, active_spell) &&
+        Spell.cost(spell) <= @mana
+      }
+    end
 
 
     ############################################################################
     # 7. ACTIONS :
     ############################################################################
 
-    ### 6.1 Attack :
+    ### 7.1 Attack :
     def attack(message)
       strength_damage   = rand(0..@strength)
 
@@ -137,7 +139,7 @@ module Combat
       response
     end
 
-    ### 6.2 Cast :
+    ### 7.2 Cast :
     def cast(message)
       spell = message[:param]
 
@@ -150,51 +152,46 @@ module Combat
                             message[:magic_attack]  = { magic_damage: rand(effect[:value]),
                                                         spell:        spell }
 
-                          when :ailment
-                            Message.new_add_ailment self, message[:targets]
-                            message[:add_ailment] = { ailment: nil } # FOR NOW !!!
-
                           when :heal
                             Message.new_heal self, message[:targets]
                             message[:heal]  = { amount: rand(effect[:value]) }
                           end
 
                         when :buff
-                            Message.new_add_buff self, message[:targets]
-                            #message[:add_buff]  = { type:   effect[:type],
-                            #                        on:     effect[:on], 
-                            #                        value:  rand(effect[:value]),
-                            #                        turns:  effect[:turns] }
-                            message[:add_buff]  = { name:   spell[:name],
-                                                    on:     effect[:on], 
-                                                    value:  rand(effect[:value]),
-                                                    turns:  effect[:turns] }
+                          Message.new_add_buff self, message[:targets]
+                          message[:add_buff]  = active_effect_from  spell[:name],
+                                                                    effect
+
+                        when :ailment
+                          Message.new_add_ailment self, message[:targets]
+                          message[:add_buff]  = active_effect_from  spell[:name],
+                                                                    effect
                         end
 
 
                       end
 
-      response                        = Combat.new_cast self, message[:targets]
-      response[:cast][:sub_messages]  = sub_messages
+      response                      = Combat.new_cast self, message[:targets]
+      response[:cast][:submessages] = sub_messages
       response
     end
 
-    ### 6.3 Use :
+    ### 7.3 Use :
     def use(item)
     end
 
-    ### 6.4 Equip :
+    ### 7.4 Equip :
     def equip(item)
       
     end
 
-    ### 6.5 Give :
+    ### 7.5 Give :
     def give(item)
       
     end
     alias drop give
 
-    ### 6.8 Wait :
+    ### 7.8 Wait :
     def wait
       
     end
@@ -345,10 +342,10 @@ module Combat
 
     ### 8.5 Add Ailment :
     def add_ailment(message)
-      @active_ailments << ailment = message[:add_ailment][:ailment]
+      @active_ailments << ailment = message[:add_ailment]
 
       response                = Message.new_got_ailment self, nil 
-      response[:got_ailment]  = { ailment: message[:add_ailment][:ailment] }
+      response[:got_ailment]  = message[:add_ailment]
       response
     end
 

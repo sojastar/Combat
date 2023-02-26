@@ -59,11 +59,49 @@ describe Combat::Actor do
   #end
 
 
+  ############################################################################
+  # 4. EFFECTS, BUFFS and AILMENTS :
+  ############################################################################
+  it 'can make active buffs from spell effects' do
+    spell         = Combat::Spell::SPELLS[:raise_magic_defense]
+    spell_effect  = spell[:effects].first
+    active_effect = @actor.active_effect_from spell[:name], spell_effect
+
+    assert_equal    spell[:name],         active_effect[:source]
+    assert_equal    spell_effect[:on],    active_effect[:on]
+    assert_includes spell_effect[:value], active_effect[:value]
+    assert_equal    spell_effect[:turns], active_effect[:turns]
+  end
+
+  it 'can make active ailments from equipment effects' do
+    equipment         = Combat::Equipment::PIECES[:poisoned_dagger]
+    equipment_effect  = equipment[:effects].last
+    active_effect     = @actor.active_effect_from equipment[:name],
+                                                  equipment_effect
+
+    assert_equal    equipment[:name],         active_effect[:source]
+    assert_equal    equipment_effect[:on],    active_effect[:on]
+    assert_includes equipment_effect[:value], active_effect[:value]
+    assert_equal    equipment_effect[:turns], active_effect[:turns]
+  end
+
+  it 'can make active ailments from spell effects' do
+    spell         = Combat::Spell::SPELLS[:poison]
+    spell_effect  = spell[:effects].first
+    active_effect = @actor.active_effect_from spell[:name], spell_effect
+
+    assert_equal    spell[:name],         active_effect[:source]
+    assert_equal    spell_effect[:on],    active_effect[:on]
+    assert_includes spell_effect[:value], active_effect[:value]
+    assert_equal    spell_effect[:turns], active_effect[:turns]
+  end
+
+
   ##############################################################################
-  # 4. ACTIONS :
+  # 5. ACTIONS :
   ##############################################################################
 
-  ### 4.1 Attack :
+  ### 5.1 Attack :
   it 'attacks with a normal weapon' do
     @actor.equipment << :long_sword
     menu_selection  = { targets: [ :some, :targets ] }
@@ -125,7 +163,7 @@ describe Combat::Actor do
                                           attack[:ailments]
   end
 
-  ### 4.2 Cast :
+  ### 5.2 Cast :
   it 'can cast magic attack spells' do
     
   end
@@ -142,23 +180,23 @@ describe Combat::Actor do
     
   end
 
-  ### 4.4 Use :
+  ### 5.4 Use :
 
 
-  ### 4.5 Equip :
+  ### 5.5 Equip :
 
 
-  ### 4.6 Give :
+  ### 5.6 Give :
 
 
-  ### 4.8 Wait :
+  ### 5.8 Wait :
 
 
   ##############################################################################
-  # 3. REACTIONS :
+  # 6. REACTIONS :
   ##############################################################################
 
-  ### 3.1 Getting hit :
+  ### 6.1 Getting hit :
   it 'gets hit with a normal weapon' do
     @actor.equipment << :leather_armor
     attack_message          = Combat::Message.new_attack :a_parent, @actor
@@ -249,7 +287,7 @@ describe Combat::Actor do
     assert_equal    @actor.max_health - hit[:total_damage], @actor.health
   end
 
-  ### 3.2 Getting magic hit (or hit with magic, if you prefere) :
+  ### 6.2 Getting magic hit (or hit with magic, if you prefere) :
   it 'gets hit with magic attacks' do
     # Prep the actor to test equipment and buff influence on magic attack :
     @actor.equipment << :magic_helm
@@ -286,7 +324,7 @@ describe Combat::Actor do
      
   end
 
-  ### 3.4 Heal :
+  ### 6.4 Heal :
   it 'heals' do
     hit_message           = Combat::Message.new_attack :a_parent, [ @actor ]
     hit_message[:attack]  = { strength_damage:  2,
@@ -340,7 +378,7 @@ describe Combat::Actor do
     assert_equal  @actor.max_health,                response[:got_heal][:health]
   end
 
-  ### 8.4 Add Buff :
+  ### 6.4 Add Buff :
   it 'can get buffs' do
     buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
     spell                   = Combat::Spell::SPELLS[:raise_attack]
@@ -360,8 +398,23 @@ describe Combat::Actor do
     assert_equal    buff_message[:add_buff],  response[:got_buff]
   end
 
-  ### 8.5 Add Ailments :
+  ### 6.5 Add Ailments :
   it 'can get ailments' do
+    ailment_message               = Combat::Message.new_add_ailment :a_parent, [ @actor ]
+    spell                         = Combat::Spell::SPELLS[:poison]
+    ailment                       = spell[:effects].first
+    ailment_message[:add_ailment] = { name:   spell[:name],
+                                      on:     ailment[:on],
+                                      value:  rand(ailment[:value]),
+                                      turns:  ailment[:turns] }
+    response                      = @actor.add_ailment ailment_message
      
+    assert_includes @actor.active_ailments, ailment_message[:add_ailment]  
+
+    assert_equal    :got_ailment, response[:type]
+    assert_equal    @actor,       response[:parent]
+    assert_nil                    response[:targets]
+
+    assert_equal    ailment_message[:add_ailment],  response[:got_ailment]
   end
 end

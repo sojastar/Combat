@@ -3,18 +3,19 @@ module Combat
     ############################################################################
     # 1. CONSTANTS :
     ############################################################################
+    #add type ailment -> on health, mana, and what else ?
     SPELLS  = { fire_ball:            { name:         'Fire Ball',
                                         intelligence: 4,
                                         cost:         3,
                                         effects:      [ { type: :action, on: :magic_attack, value: 3..5 } ] },
-                poison:               { name:         'Poison',
-                                        intelligence: 3,
-                                        cost:         2,
-                                        effects:      [ { type: :action, on: :ailment, ailment: :poison, value: 1..3, turns: 3 } ] },
                 heal:                 { name:         'Heal',
                                         intelligence: 2,
                                         cost:         3,
                                         effects:      [ { type: :action, on: :heal, value: 7..12 } ] },
+                poison:               { name:         'Poison',
+                                        intelligence: 3,
+                                        cost:         2,
+                                        effects:      [ { type: :ailment, on: :health, value: 1..3, turns: 3 } ] },
                 raise_defense:        { name:         'Shield',
                                         intelligence: 3,
                                         cost:         2,

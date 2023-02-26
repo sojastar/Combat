@@ -1,13 +1,13 @@
 module Combat
   module Equipment
     PIECES  = { long_sword:       { name:       "Long Sword",
-                                    effects:    [ { type: :action, on: :attack, value: 2 } ] },
+                                    effects:    [ { type: :buff, on: :attack, value: 2 } ] },
                 poisoned_dagger:  { name:       "Poisoned Dagger",
-                                    effects:    [ { type: :action, on: :attack, value: 1 },
-                                                  { type: :action, on: :ailment, ailment: :poison, value: 1..3, turns: 3 } ] },
+                                    effects:    [ { type: :buff, on: :attack, value: 1 },
+                                                  { type: :ailment, on: :health, value: 1..3, turns: 3 } ] },
                 magic_sword:      { name:       "Magic Sword",
-                                    effects:    [ { type: :action, on: :attack, value: 1 },
-                                                  { type: :action, on: :magic_attack, value: 1 } ] },
+                                    effects:    [ { type: :buff, on: :attack, value: 1 },
+                                                  { type: :buff, on: :magic_attack, value: 1 } ] },
                 leather_armor:    { name:       'Leather Armor',
                                     effects:    [ { type: :buff, on: :defense, value: 2 } ] },
                 amulet:           { name:       'Amulet',
@@ -16,7 +16,7 @@ module Combat
                                     effects:    [ { type: :buff, on: :defense, value: 1 },
                                                   { type: :buff, on: :magic_defense, value: 1 } ] } }
 
-    def self.has_attack_value?(piece)
+    def self.raise_attack?(piece)
       Combat::Equipment::PIECES[piece][:effects].any? do |effect|
         effect[:on] == :attack
       end
@@ -28,7 +28,7 @@ module Combat
       end
     end
 
-    def self.has_magic_attack_value?(piece)
+    def self.raise_magic_attack?(piece)
       Combat::Equipment::PIECES[piece][:effects].any? do |effect|
         effect[:on] == :magic_attack
       end
@@ -42,17 +42,17 @@ module Combat
 
     def self.has_ailment_effect?(piece)
       Combat::Equipment::PIECES[piece][:effects].any? do |effect|
-        effect[:on] == :ailment 
+        effect[:type] == :ailment 
       end
     end
 
     def self.ailment_effects(piece)
       Combat::Equipment::PIECES[piece][:effects].select do |effect|
-        effect[:on] == :ailment
+        effect[:type] == :ailment
       end
     end
 
-    def self.has_defense_value?(piece)
+    def self.raise_defense?(piece)
       Combat::Equipment::PIECES[piece][:effects].any? do |effect|
         effect[:on] == :defense
       end
@@ -64,7 +64,7 @@ module Combat
       end
     end
 
-    def self.has_magic_defense_value?(piece)
+    def self.raise_magic_defense?(piece)
       Combat::Equipment::PIECES[piece][:effects].any? do |effect|
         effect[:on] == :magic_defense
       end
