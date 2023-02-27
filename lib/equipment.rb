@@ -16,62 +16,66 @@ module Combat
                                     effects:    [ { type: :buff, on: :defense, value: 1 },
                                                   { type: :buff, on: :magic_defense, value: 1 } ] } }
 
+    def self.name(piece)
+      PIECES[piece][:name]
+    end
+
     def self.raise_attack?(piece)
-      Combat::Equipment::PIECES[piece][:effects].any? do |effect|
+      PIECES[piece][:effects].any? do |effect|
         effect[:on] == :attack
       end
     end
 
     def self.attack_value(piece)
-      Combat::Equipment::PIECES[piece][:effects].inject(0) do |buff,effect|
+      PIECES[piece][:effects].inject(0) do |buff,effect|
         buff + ( effect[:on] == :attack ? effect[:value] : 0 )
       end
     end
 
     def self.raise_magic_attack?(piece)
-      Combat::Equipment::PIECES[piece][:effects].any? do |effect|
+      PIECES[piece][:effects].any? do |effect|
         effect[:on] == :magic_attack
       end
     end
 
     def self.magic_attack_value(piece)
-      Combat::Equipment::PIECES[piece][:effects].inject(0) do |buff,effect|
+      PIECES[piece][:effects].inject(0) do |buff,effect|
         buff + ( effect[:on] == :magic_attack ? effect[:value] : 0 )
       end
     end
 
     def self.has_ailment_effect?(piece)
-      Combat::Equipment::PIECES[piece][:effects].any? do |effect|
+      PIECES[piece][:effects].any? do |effect|
         effect[:type] == :ailment 
       end
     end
 
     def self.ailment_effects(piece)
-      Combat::Equipment::PIECES[piece][:effects].select do |effect|
+      PIECES[piece][:effects].select do |effect|
         effect[:type] == :ailment
       end
     end
 
     def self.raise_defense?(piece)
-      Combat::Equipment::PIECES[piece][:effects].any? do |effect|
+      PIECES[piece][:effects].any? do |effect|
         effect[:on] == :defense
       end
     end
 
     def self.defense_value(piece)
-      Combat::Equipment::PIECES[piece][:effects].inject(0) do |buff,effect|
+      PIECES[piece][:effects].inject(0) do |buff,effect|
         buff + ( effect[:on] == :defense ? effect[:value] : 0 )
       end
     end
 
     def self.raise_magic_defense?(piece)
-      Combat::Equipment::PIECES[piece][:effects].any? do |effect|
+      PIECES[piece][:effects].any? do |effect|
         effect[:on] == :magic_defense
       end
     end
 
     def self.magic_defense_value(piece)
-      Combat::Equipment::PIECES[piece][:effects].inject(0) do |buff,effect|
+      PIECES[piece][:effects].inject(0) do |buff,effect|
         buff + ( effect[:on] == :magic_defense ? effect[:value] : 0 )
       end
     end

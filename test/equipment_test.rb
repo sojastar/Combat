@@ -2,6 +2,10 @@ require 'minitest/autorun'
 require_relative 'test_helper.rb'
 
 describe Combat::Equipment do
+  it 'can return the name of a piece of equipment' do
+    assert_equal  'Long Sword', Combat::Equipment.name(:long_sword)
+  end
+
   it 'can have an attack value or not' do
     assert            Combat::Equipment.raise_attack?(:long_sword)
     assert_equal  2,  Combat::Equipment.attack_value(:long_sword)

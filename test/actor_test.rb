@@ -275,93 +275,170 @@ describe Combat::Actor do
 
   ### 6.1 Getting hit :
   it 'gets hit with a normal weapon' do
-    @actor.equipment << :leather_armor
+    # Preping the actor :
+    armor_id  = :leather_armor
+    armor     = Combat::Equipment::PIECES[armor_id][:effects].first
+    @actor.equipment << armor_id
+
+    defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
+    @actor.active_buffs << defense_buff
+
+    magic_defense_buff  = { source: 'Magic Barrier', on: :magic_defense, value: 2, turns: 3 }
+    @actor.active_buffs << magic_defense_buff
+ 
+    # Attacking :
     attack_message          = Combat::Message.new_attack :a_parent, @actor
-    attack_message[:attack] = { strength_damage:  2,
+    attack                  = { strength_damage:  2,
                                 weapons:          [ :long_sword ],
                                 weapon_damage:    14,
                                 magic_weapons:    [],
                                 magic_damage:     0,
                                 ailments:         [] }
-  
+    attack_message[:attack] = attack
     response                = @actor.got_hit attack_message
 
-    assert_equal  :got_hit,   response[:type]
-    assert_equal  @actor,     response[:parent]
-    assert_nil                response[:target]
+    assert_equal  :got_hit, response[:type]
+    assert_equal  @actor,   response[:parent]
+    assert_nil              response[:target]
 
     hit = response[:got_hit]
     
-    assert_equal  attack_message[:attack],  hit[:hit_attack]
-    assert_equal  2,                        hit[:equipment_defense]         
-    assert_equal  0,                        hit[:buff_defense]
-    assert_equal  14,                       hit[:physical_damage]
-    assert_equal  0,                        hit[:equipment_magic_defense]
-    assert_equal  0,                        hit[:buff_magic_defense]
-    assert_equal  0,                        hit[:magic_damage]
-    assert_equal  14,                       hit[:total_damage]
+    assert_equal  attack,                     hit[:hit_attack]
+    assert_equal  armor[:value],              hit[:equipment_defense]         
+    assert_equal  defense_buff[:value],       hit[:buff_defense]
+    assert_equal  [ attack[:strength_damage]  +
+                    attack[:weapon_damage]    -
+                    armor[:value]             -
+                    defense_buff[:value], 0 ].max,
+                                              hit[:physical_damage]
+    assert_equal  0,                          hit[:equipment_magic_defense]
+    assert_equal  magic_defense_buff[:value], hit[:buff_magic_defense]
+    assert_equal  [ attack[:magic_damage]         -
+                    hit[:equipment_magic_defense] -
+                    hit[:buff_magic_defense], 0 ].max,
+                                              hit[:magic_damage]
+    assert_empty                              hit[:ailments]
+    assert_empty                              @actor.active_ailments
+    assert_equal  hit[:physical_damage] +
+                  hit[:magic_damage],
+                                              hit[:total_damage]
 
     assert_equal  @actor.max_health - hit[:total_damage], @actor.health
   end
 
   it 'gets hit with magic weapons' do
-    @actor.equipment << :leather_armor
-    @actor.equipment << :magic_helm
+    # Preping the actor :
+    armor_id  = :leather_armor
+    armor     = Combat::Equipment::PIECES[armor_id][:effects].first
+    @actor.equipment << armor_id
+
+    helm_id   = :magic_helm
+    helm      = Combat::Equipment::PIECES[helm_id][:effects].first
+    @actor.equipment << helm_id
+
+    defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
+    @actor.active_buffs << defense_buff
+
+    magic_defense_buff  = { source: 'Magic Barrier', on: :magic_defense, value: 2, turns: 3 }
+    @actor.active_buffs << magic_defense_buff
+
     attack_message          = Combat::Message.new_attack :a_parent, @actor
-    attack_message[:attack] = { strength_damage:  2,
+    attack                  = { strength_damage:  2,
                                 weapons:          [ :magic_sword ],
                                 weapon_damage:    5,
                                 magic_weapons:    [ :magic_sword ],
                                 magic_damage:     5,
                                 ailments:         [] }
-    
+    attack_message[:attack] = attack
     response                = @actor.got_hit attack_message
 
-    assert_equal  :got_hit,   response[:type]
-    assert_equal  @actor,     response[:parent]
-    assert_nil                response[:target]
+    assert_equal  :got_hit, response[:type]
+    assert_equal  @actor,   response[:parent]
+    assert_nil              response[:target]
 
     hit = response[:got_hit]
     
-    assert_equal  attack_message[:attack],  hit[:hit_attack]
-    assert_equal  3,                        hit[:equipment_defense] # leather armor + magic helm
-    assert_equal  0,                        hit[:buff_defense]
-    assert_equal  4,                        hit[:physical_damage]
-    assert_equal  1,                        hit[:equipment_magic_defense]
-    assert_equal  0,                        hit[:buff_magic_defense]
-    assert_equal  4,                        hit[:magic_damage]
-    assert_equal  8,                        hit[:total_damage]
+    assert_equal  attack,                       hit[:hit_attack]
+    assert_equal  armor[:value] + helm[:value], hit[:equipment_defense] # leather armor + magic helm
+    assert_equal  defense_buff[:value],         hit[:buff_defense]
+    assert_equal  [ attack[:strength_damage]  +
+                    attack[:weapon_damage]    -
+                    hit[:equipment_defense]   -
+                    hit[:buff_defense], 0 ].max,
+                                                hit[:physical_damage]
+    assert_equal  helm[:value],                 hit[:equipment_magic_defense]
+    assert_equal  magic_defense_buff[:value],   hit[:buff_magic_defense]
+    assert_equal  [ attack[:magic_damage]         -
+                    hit[:equipment_magic_defense] -
+                    hit[:buff_magic_defense], 0 ].max,
+                                                hit[:magic_damage]
+    assert_empty                                hit[:ailments]
+    assert_empty                                @actor.active_ailments
+    assert_equal  hit[:physical_damage] +
+                  hit[:magic_damage],
+                                                hit[:total_damage]
 
     assert_equal  @actor.max_health - hit[:total_damage], @actor.health
   end
 
   it 'gets hit with ailment weapons' do
-    @actor.equipment << :leather_armor
-    @actor.equipment << :magic_helm
+    # Preping the actor :
+    armor_id  = :leather_armor
+    armor     = Combat::Equipment::PIECES[armor_id][:effects].first
+    @actor.equipment << armor_id
+
+    helm_id   = :magic_helm
+    helm      = Combat::Equipment::PIECES[helm_id][:effects].first
+    @actor.equipment << helm_id
+
+    defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
+    @actor.active_buffs << defense_buff
+
+    magic_defense_buff  = { source: 'Magic Barrier', on: :magic_defense, value: 2, turns: 3 }
+    @actor.active_buffs << magic_defense_buff
+ 
+    # Attacking :
+    weapon_id               = :poisoned_dagger
+    weapon_name             = Combat::Equipment.name weapon_id
+    ailment_effect          = Combat::Equipment::PIECES[weapon_id][:effects].last 
+    ailment                 = @actor.active_effect_from weapon_name, ailment_effect  
     attack_message          = Combat::Message.new_attack :a_parent, @actor
-    attack_message[:attack] = { strength_damage:  2,
-                                weapons:          [ :poisoned_dagger ],
+    attack                  = { strength_damage:  2,
+                                weapons:          [ weapon_id ],
                                 weapon_damage:    1,
                                 magic_weapons:    [],
                                 magic_damage:     0,
-                                ailments:         [ Combat::Equipment::PIECES[:poisoned_dagger][:effects].last ] }
-    
+                                ailments:         [ ailment_effect ] }
+    attack_message[:attack] = attack
     response                = @actor.got_hit attack_message
 
-    assert_equal  :got_hit,   response[:type]
-    assert_equal  @actor,     response[:parent]
-    assert_nil                response[:target]
+    assert_equal  :got_hit, response[:type]
+    assert_equal  @actor,   response[:parent]
+    assert_nil              response[:target]
 
     hit = response[:got_hit]
     
-    assert_equal  1,      hit[:equipment_magic_defense]
-    assert_equal  0,      hit[:buff_magic_defense]
-    assert_equal  0,      hit[:magic_damage]
-    assert_equal  0,      hit[:total_damage]
+    assert_equal  attack,                       hit[:hit_attack]
+    assert_equal  armor[:value] + helm[:value], hit[:equipment_defense] # leather armor + magic helm
+    assert_equal  defense_buff[:value],         hit[:buff_defense]
+    assert_equal  [ attack[:strength_damage]  +
+                    attack[:weapon_damage]    -
+                    hit[:equipment_defense]   -
+                    hit[:buff_defense], 0 ].max,
+                                                hit[:physical_damage]
+    assert_equal  helm[:value],                 hit[:equipment_magic_defense]
+    assert_equal  magic_defense_buff[:value],   hit[:buff_magic_defense]
+    assert_equal  [ attack[:magic_damage]         -
+                    hit[:equipment_magic_defense] -
+                    hit[:buff_magic_defense], 0 ].max,
+                                                hit[:magic_damage]
+    assert        same_effect(ailment, hit[:ailments].first)
+    assert        same_effect(ailment, @actor.active_ailments.first)
+    assert_equal  hit[:physical_damage] +
+                  hit[:magic_damage],
+                                                hit[:total_damage]
 
-    assert_includes @actor.active_ailments,
-                    Combat::Equipment::PIECES[:poisoned_dagger][:effects].last
-    assert_equal    @actor.max_health - hit[:total_damage], @actor.health
+    assert_equal  @actor.max_health - hit[:total_damage], @actor.health
   end
 
   ### 6.2 Getting magic hit (or hit with magic, if you prefere) :

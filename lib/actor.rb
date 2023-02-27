@@ -131,11 +131,11 @@ module Combat
 
       response            = Message.new_attack self, message[:targets]
       response[:attack]   = { strength_damage:  strength_damage,
-                             weapons:          weapons,
-                             weapon_damage:    weapon_damage,
-                             magic_weapons:    magic_weapons,
-                             magic_damage:     magic_damage,
-                             ailments:         ailments }
+                              weapons:          weapons,
+                              weapon_damage:    weapon_damage,
+                              magic_weapons:    magic_weapons,
+                              magic_damage:     magic_damage,
+                              ailments:         ailments }
       response
     end
 
@@ -218,10 +218,10 @@ module Combat
                           }
 
       buff_defense  = @active_buffs.filter { |buff|
-                       buff[:on] == :defense
+                        buff[:on] == :defense
                       }
                       .inject(0) { |defense,buff|
-                        defense + rand(buff[:value])
+                        defense + buff[:value]
                       }
 
       physical_damage = [ 0, 
@@ -242,7 +242,7 @@ module Combat
                               buff[:on] == :magic_defense
                             }
                             .inject(0) { |defense,buff|
-                              defense + rand(buff[:value])
+                              defense + buff[:value]
                             }
 
       magic_damage  = [ 0, 
@@ -251,7 +251,14 @@ module Combat
                         buff_magic_defense ].max
 
       ### Ailments :
-      new_ailments  = attack[:ailments].map { |ailment| ailment.dup }
+      #new_ailments  = attack[:ailments].map { |ailment| ailment.dup }
+      weapons_list  = attack[:weapons].map { |weapon|
+                        Combat::Equipment.name weapon
+                      }
+                      .join(', ')
+      new_ailments  = attack[:ailments].map do |ailment|
+        active_effect_from weapons_list, ailment
+      end
       new_ailments.each { |ailment| @active_ailments << ailment }
 
       ### Final damage calculation :
@@ -276,6 +283,9 @@ module Combat
 
     ### 8.2 Get Magic Hit :
     def got_magic_hit(message)
+      ### Convenience :
+      attack = message[:magic_attack]
+
       ### Magic damage :
       equipment_magic_defense = @equipment.filter { |piece|
                                   Equipment.raise_magic_defense? piece
@@ -292,12 +302,15 @@ module Combat
                             }
 
       magic_damage  = [ 0, 
-                        message[:magic_attack][:magic_damage]   -
+                        attack[:magic_damage]   -
                         equipment_magic_defense -
                         buff_magic_defense ].max
 
       ### Ailments :
-      new_ailments  = message[:magic_attack][:ailments].map { |ailment| ailment.dup }
+      #new_ailments  = message[:magic_attack][:ailments].map { |ailment| ailment.dup }
+      new_ailments  = attack[:ailments].map do |ailment|
+        active_effect_from  Combat::Spell.name(attack[:spell]), ailment
+      end
       new_ailments.each { |ailment| @active_ailments << ailment }
 
       ### Final damage calculation :
