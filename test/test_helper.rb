@@ -9,7 +9,7 @@ require_relative  '../lib/actor.rb'
 require_relative  '../lib/fight.rb'
 #require_relative  '../lib/player.rb'
 
-def same_ailments(a1,a2)
+def same_effect(a1,a2)
   a1[:source] == a2[:source]  &&
   a1[:on]     == a2[:on]      &&
   a1[:turns]  == a2[:turns]
