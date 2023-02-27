@@ -153,8 +153,9 @@ module Combat
                                                         spell:        spell }
 
                           when :heal
-                            Message.new_heal self, message[:targets]
-                            message[:heal]  = { amount: rand(effect[:value]) }
+                            submessage        = Message.new_heal self, message[:targets]
+                            submessage[:heal] = { amount: rand(effect[:value]) }
+                            submessage
                           end
 
                         when :buff
