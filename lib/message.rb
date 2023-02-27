@@ -75,10 +75,10 @@ module Combat
     def self.new_cast(parent,targets)
       message = new_empty
 
-      message[:type]   = x
+      message[:type]    = :cast
       message[:parent]  = parent
-      message[:targets]   = targets
-      message[:x] = {}
+      message[:targets] = targets
+      message[:cast]    = { submessages: [] }
 
       message
     end

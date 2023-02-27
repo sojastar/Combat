@@ -165,19 +165,44 @@ describe Combat::Actor do
 
   ### 5.2 Cast :
   it 'can cast magic attack spells' do
-    
-  end
-
-  it 'can cast ailment spells' do
-    
+    #menu_selection  = { targets: [ :some, :targets ], param: :fire_ball } 
+    #cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    #reponse         = @actor.cast cast_message
   end
 
   it 'can cast healing spells' do
-    
+    #menu_selection  = { targets: [ :some, :targets ], param: :heal } 
+    #cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    #reponse         = @actor.cast cast_message
   end
 
   it 'can cast buff spells' do
+    #menu_selection  = { targets: [ :some, :targets ], param: :raise_defense } 
+    #cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    #reponse         = @actor.cast cast_message
+  end
+
+  it 'can cast ailment spells' do
+    spell_id        = :poison
+    spell           = Combat::Spell::SPELLS[spell_id]
+    ailment         = @actor.active_effect_from spell[:name],
+                                                spell[:effects].first
+
+    menu_selection  = { targets: [ :some, :targets ], param: spell_id }
+    cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    response        = @actor.cast cast_message
+
+    assert_equal  :cast,                    response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1,        response[:cast][:submessages].length
     
+    submessage  = response[:cast][:submessages].first
+    assert_equal  :add_ailment,             submessage[:type]
+    assert_equal  @actor,                   submessage[:parent]
+    assert_equal  menu_selection[:targets], submessage[:targets]
+    assert        same_ailment(ailment, submessage[:add_ailment])
   end
 
   ### 5.4 Use :

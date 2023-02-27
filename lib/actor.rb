@@ -158,20 +158,20 @@ module Combat
                           end
 
                         when :buff
-                          Message.new_add_buff self, message[:targets]
-                          message[:add_buff]  = active_effect_from  spell[:name],
-                                                                    effect
+                          submessage            = Message.new_add_buff self, message[:targets]
+                          submessage[:add_buff] = active_effect_from Spell.name(spell), effect
+                          submessage
 
                         when :ailment
-                          Message.new_add_ailment self, message[:targets]
-                          message[:add_buff]  = active_effect_from  spell[:name],
-                                                                    effect
+                          submessage                = Message.new_add_ailment self, message[:targets]
+                          submessage[:add_ailment]  = active_effect_from Spell.name(spell), effect
+                          submessage
                         end
 
 
                       end
 
-      response                      = Combat.new_cast self, message[:targets]
+      response                      = Combat::Message.new_cast self, message[:targets]
       response[:cast][:submessages] = sub_messages
       response
     end
@@ -209,7 +209,7 @@ module Combat
 
       ### Physical damage :
       equipment_defense = @equipment.filter { |piece|
-                            Equipment.has_defense_value? piece
+                            Equipment.raise_defense? piece
                           }
                           .inject(0) { |defense,piece|
                             defense + Equipment.defense_value(piece)
@@ -230,7 +230,7 @@ module Combat
 
       ### Magic damage :
       equipment_magic_defense = @equipment.filter { |piece|
-                                  Equipment.has_magic_defense_value? piece
+                                  Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|
                                   defense + Equipment.magic_defense_value(piece)
@@ -276,7 +276,7 @@ module Combat
     def got_magic_hit(message)
       ### Magic damage :
       equipment_magic_defense = @equipment.filter { |piece|
-                                  Equipment.has_magic_defense_value? piece
+                                  Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|
                                   defense + Equipment.magic_defense_value(piece)
