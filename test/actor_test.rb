@@ -165,9 +165,25 @@ describe Combat::Actor do
 
   ### 5.2 Cast :
   it 'can cast magic attack spells' do
-    #menu_selection  = { targets: [ :some, :targets ], param: :fire_ball } 
-    #cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
-    #reponse         = @actor.cast cast_message
+    spell_id        = :fire_ball
+    spell           = Combat::Spell::SPELLS[spell_id]
+
+    menu_selection  = { targets: [ :some, :targets ], param: spell_id }
+    cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    response        = @actor.cast cast_message
+
+    assert_equal  :cast,                    response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1, response[:cast][:submessages].length
+    
+    submessage  = response[:cast][:submessages].first
+    assert_equal    :magic_attack,                  submessage[:type]
+    assert_equal    @actor,                         submessage[:parent]
+    assert_equal    menu_selection[:targets],       submessage[:targets]
+    assert_includes spell[:effects].first[:value],  submessage[:magic_attack][:magic_damage] 
+    assert_equal    spell[:name],                   submessage[:magic_attack][:spell]
   end
 
   it 'can cast healing spells' do
@@ -235,6 +251,10 @@ describe Combat::Actor do
     assert_equal  @actor,                   submessage[:parent]
     assert_equal  menu_selection[:targets], submessage[:targets]
     assert        same_effect(ailment, submessage[:add_ailment])
+  end
+
+  it 'can cast spells with several effects' do
+    
   end
 
   ### 5.4 Use :

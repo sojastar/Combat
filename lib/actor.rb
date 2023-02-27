@@ -148,9 +148,10 @@ module Combat
                         when :action
                           case effect[:on]
                           when :magic_attack
-                            Message.new_magic_attack self, message[:targets]
-                            message[:magic_attack]  = { magic_damage: rand(effect[:value]),
-                                                        spell:        spell }
+                            submessage                = Message.new_magic_attack self, message[:targets]
+                            submessage[:magic_attack] = { magic_damage: rand(effect[:value]),
+                                                          spell:        Spell.name(spell) }
+                            submessage
 
                           when :heal
                             submessage        = Message.new_heal self, message[:targets]
