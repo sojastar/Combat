@@ -27,6 +27,8 @@ module Combat
       when :attack_selected then actor.attack   message
       when :attack          then actor.get_hit  message
       when :cast_selected   then actor.cast     message
+      when :cast
+        message[:submessages].each { |submessage| run_actor actor, submessage }
       #when :use_selected    then actor.use      message
       end
     end

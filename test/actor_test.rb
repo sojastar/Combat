@@ -444,22 +444,19 @@ describe Combat::Actor do
   ### 6.2 Getting magic hit (or hit with magic, if you prefere) :
   it 'gets hit with magic attacks' do
     # Prep the actor to test equipment and buff influence on magic attack :
-    @actor.equipment << :magic_helm
-    buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
-    spell                   = Combat::Spell::SPELLS[:raise_magic_defense]
-    buff                    = spell[:effects].first
-    buff_message[:add_buff] = { name:   spell[:name],
-                                on:     buff[:on],
-                                value:  rand(buff[:value]),
-                                turns:  buff[:turns] }
-    buff_response           = @actor.add_buff buff_message
+    helm_id   = :magic_helm
+    helm      = Combat::Equipment::PIECES[helm_id][:effects].first
+    @actor.equipment << helm_id
+
+    magic_defense_buff  = { source: 'Magic Barrier', on: :magic_defense, value: 2, turns: 3 }
+    @actor.active_buffs << magic_defense_buff
 
     # Attack :
     magic_attack_message                = Combat::Message.new_magic_attack :a_parent, [ @actor ]
     spell                               = Combat::Spell::SPELLS[:fire_ball]
-    magic_attack_message[:magic_attack] = { magic_damage: 10,
-                                            ailments:     [],
+    magic_attack                        = { magic_damage: 10,
                                             spell:        spell }
+    magic_attack_message[:magic_attack] = magic_attack
     
     response  = @actor.got_magic_hit magic_attack_message
 
@@ -467,18 +464,18 @@ describe Combat::Actor do
     assert_equal  @actor,         response[:parent]
     assert_nil                    response[:targets]
 
-    assert_equal  1,      response[:got_magic_hit][:equipment_magic_defense]
-    assert_equal  2,      response[:got_magic_hit][:buff_magic_defense]
-    assert_equal  7,      response[:got_magic_hit][:magic_damage]
-    assert_empty          response[:got_magic_hit][:ailments]
-    assert_equal  spell,  response[:got_magic_hit][:spell]
+    hit = response[:got_magic_hit]
+
+    assert_equal  helm[:value],                 hit[:equipment_magic_defense]
+    assert_equal  magic_defense_buff[:value],   hit[:buff_magic_defense]
+    assert_equal  [ magic_attack[:magic_damage]   -
+                    hit[:equipment_magic_defense] -
+                    hit[:buff_magic_defense], 0 ].max,
+                                                hit[:magic_damage]
+    assert_equal  spell,                        hit[:spell]
   end 
 
-  it 'gets hit with magic attacks that also provoke ailments' do
-     
-  end
-
-  ### 6.4 Heal :
+  ### 6.3 Heal :
   it 'heals' do
     hit_message           = Combat::Message.new_attack :a_parent, [ @actor ]
     hit_message[:attack]  = { strength_damage:  2,

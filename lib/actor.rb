@@ -306,13 +306,6 @@ module Combat
                         equipment_magic_defense -
                         buff_magic_defense ].max
 
-      ### Ailments :
-      #new_ailments  = message[:magic_attack][:ailments].map { |ailment| ailment.dup }
-      new_ailments  = attack[:ailments].map do |ailment|
-        active_effect_from  Combat::Spell.name(attack[:spell]), ailment
-      end
-      new_ailments.each { |ailment| @active_ailments << ailment }
-
       ### Final damage calculation :
       @health  -= magic_damage
       @health   = 0 if @health < 0
@@ -321,7 +314,6 @@ module Combat
       response[:got_magic_hit]  = { equipment_magic_defense:  equipment_magic_defense,
                                     buff_magic_defense:       buff_magic_defense,
                                     magic_damage:             magic_damage,
-                                    ailments:                 new_ailments,
                                     spell:                    message[:magic_attack][:spell] }
 
       response
