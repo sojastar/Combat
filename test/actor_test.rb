@@ -254,7 +254,33 @@ describe Combat::Actor do
   end
 
   it 'can cast spells with several effects' do
+    spell_id        = :toxic_sleep
+    spell           = Combat::Spell::SPELLS[spell_id]
+    ailments        = spell[:effects].map do |effect|
+                        @actor.active_effect_from spell[:name], effect
+                      end
+
+    menu_selection  = { targets: [ :some, :targets ], param: spell_id }
+    cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
+    response        = @actor.cast cast_message
+
+    assert_equal  :cast,                    response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  2, response[:cast][:submessages].length
     
+    first_submessage  = response[:cast][:submessages].first
+    assert_equal  :add_ailment,               first_submessage[:type]
+    assert_equal  @actor,                     first_submessage[:parent]
+    assert_equal  menu_selection[:targets],   first_submessage[:targets]
+    assert        same_effect(ailments.first, first_submessage[:add_ailment])
+    
+    second_submessage = response[:cast][:submessages].last
+    assert_equal  :add_ailment,               second_submessage[:type]
+    assert_equal  @actor,                     second_submessage[:parent]
+    assert_equal  menu_selection[:targets],   second_submessage[:targets]
+    assert        same_effect(ailments.last,  second_submessage[:add_ailment])
   end
 
   ### 5.4 Use :
