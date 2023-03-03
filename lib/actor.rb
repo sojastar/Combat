@@ -68,6 +68,22 @@ module Combat
         turns:  effect[:turns] }
     end
 
+    def push_effect_to(effect,active_effects)
+      same_on_effect  = active_effects.select { |active_effect|
+                          effect[:on] == active_effect[:on]
+                        }
+                        .first  # should be only zero or one element
+
+      if same_on_effect.nil?
+        active_effects << effect
+      else
+        if effect[:value] >= same_on_effect[:value]
+          same_on_effect[:value] = effect[:value]
+          same_on_effect[:turns] = effect[:turns]
+        end
+      end
+    end
+
     def resolve_ailements
       @active_ailments.each { |effect| resolve_ailement ailment }
     end
@@ -259,7 +275,8 @@ module Combat
       new_ailments  = attack[:ailments].map do |ailment|
         active_effect_from weapons_list, ailment
       end
-      new_ailments.each { |ailment| @active_ailments << ailment }
+      #new_ailments.each { |ailment| @active_ailments << ailment }
+      new_ailments.each { |ailment| push_effect_to ailment, @active_ailments }
 
       ### Final damage calculation :
       total_damage  = physical_damage + magic_damage
@@ -349,7 +366,7 @@ module Combat
 
     ### 8.5 Add Ailment :
     def add_ailment(message)
-      @active_ailments << ailment = message[:add_ailment]
+      push_effect_to message[:add_ailment], @active_ailments
 
       response                = Message.new_got_ailment self, nil 
       response[:got_ailment]  = message[:add_ailment]

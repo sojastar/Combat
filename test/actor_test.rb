@@ -96,6 +96,60 @@ describe Combat::Actor do
     assert_equal    spell_effect[:turns], active_effect[:turns]
   end
 
+  it 'can push new buffs to the corresponding active array' do
+    other_buff1   = { name: 'war cry',        on: :attack,        value: 0, turns: 3 }
+    other_buff2   = { name: 'magic barrier',  on: :magic_attack,  value: 0, turns: 4 }
+    buff          = { name: 'shield',         on: :defense,       value: 2, turns: 2 }
+    weaker_buff   = { name: 'shield',         on: :defense,       value: 1, turns: 2 }
+    stronger_buff = { name: 'shield',         on: :defense,       value: 3, turns: 3 }
+
+    @actor.push_effect_to other_buff1, @actor.active_buffs
+    @actor.push_effect_to buff,        @actor.active_buffs
+    @actor.push_effect_to other_buff2, @actor.active_buffs
+
+    # Pushing a weaker buff won't change anything :
+    @actor.push_effect_to weaker_buff, @actor.active_buffs
+
+    assert_equal 3,               @actor.active_buffs.length
+    assert_equal buff[:value], @actor.active_buffs[1][:value]
+    assert_equal buff[:turns], @actor.active_buffs[1][:turns]
+
+    # Pushng a stronger buff will replace the current buff and reset...
+    # ... the turn counter :
+    @actor.push_effect_to stronger_buff, @actor.active_buffs
+
+    assert_equal 3,                         @actor.active_buffs.length
+    assert_equal stronger_buff[:value],  @actor.active_buffs[1][:value]
+    assert_equal stronger_buff[:turns],  @actor.active_buffs[1][:turns]
+  end
+
+  it 'can push new ailments to the corresponding active array' do
+    other_ailment1    = { name: 'Sleep',  on: :sleep,  value: 0, turns: 3 }
+    other_ailment2    = { name: 'Drunk',  on: :drunk,  value: 0, turns: 4 }
+    ailment           = { name: 'Poison', on: :health, value: 2, turns: 2 }
+    weaker_ailment    = { name: 'Poison', on: :health, value: 1, turns: 2 }
+    stronger_ailment  = { name: 'Poison', on: :health, value: 3, turns: 3 }
+
+    @actor.push_effect_to other_ailment1, @actor.active_ailments
+    @actor.push_effect_to ailment,        @actor.active_ailments
+    @actor.push_effect_to other_ailment2, @actor.active_ailments
+
+    # Pushing a weaker ailment won't change anything :
+    @actor.push_effect_to weaker_ailment, @actor.active_ailments
+
+    assert_equal 3,               @actor.active_ailments.length
+    assert_equal ailment[:value], @actor.active_ailments[1][:value]
+    assert_equal ailment[:turns], @actor.active_ailments[1][:turns]
+
+    # Pushng a stronger ailment will replace the current ailment and reset...
+    # ... the turn counter :
+    @actor.push_effect_to stronger_ailment, @actor.active_ailments
+
+    assert_equal 3,                         @actor.active_ailments.length
+    assert_equal stronger_ailment[:value],  @actor.active_ailments[1][:value]
+    assert_equal stronger_ailment[:turns],  @actor.active_ailments[1][:turns]
+  end
+
 
   ##############################################################################
   # 5. ACTIONS :
