@@ -86,10 +86,10 @@ module Combat
     def self.new_use(parent,targets)
       message  = new_empty
 
-      message[:type]   = x
+      message[:type]    = :use
       message[:parent]  = parent
-      message[:targets]   = targets
-      message[:x] = {}
+      message[:targets] = targets
+      message[:use]     = { submessages: [] }
 
       message
     end
@@ -130,10 +130,10 @@ module Combat
     def self.new_add_mana(parent,targets)
       message  = new_empty
 
-      message[:parent]  = parent
-      message[:type]   = x
+      message[:type]      = :add_mana
+      message[:parent]    = parent
       message[:targets]   = targets
-      message[:x] = {}
+      message[:add_mana]  = { amount: 0, source: '' }
 
       message
     end

@@ -33,7 +33,7 @@ module Combat
     def use() 
       unless depleted?
         @uses -= 1
-        @effects
+        effects
 
       else
         []

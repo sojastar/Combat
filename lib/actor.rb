@@ -77,6 +77,13 @@ module Combat
             submessage[:heal] = { amount: rand(effect[:value]),
                                   source: source }
             submessage
+
+          when :add_mana
+            submessage              = Message.new_add_mana self, targets
+            submessage[:add_mana]   = { amount: rand(effect[:value]),
+                                        source: source }
+            submessage
+
           end
 
         when :buff

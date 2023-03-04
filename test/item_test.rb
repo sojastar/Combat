@@ -27,19 +27,19 @@ describe Combat::Item do
   end
 
   it 'is used' do
-    effect = @fire_wand.use
+    effects = @fire_wand.use
 
     assert_equal  Combat::Item::ITEMS[:fire_wand][:uses] - 1, @fire_wand.uses
-    assert_equal  Combat::Item::ITEMS[:fire_wand][:effect],   effect
+    assert_equal  Combat::Item::ITEMS[:fire_wand][:effects],  effects
   end
 
   it 'can get depleted' do
-    effect = nil
-    Combat::Item::ITEMS[:blowpipe][:uses].times { effect = @blowpipe.use }
+    effects = nil
+    Combat::Item::ITEMS[:blowpipe][:uses].times { effects = @blowpipe.use }
 
     assert_equal  0,                                        @blowpipe.uses
     assert                                                  @blowpipe.depleted?
-    assert_equal  Combat::Item::ITEMS[:fire_wand][:effect], effect
+    assert_equal  Combat::Item::ITEMS[:blowpipe][:effects], effects
 
     effect = @blowpipe.use
     assert_equal  0,  @blowpipe.uses
