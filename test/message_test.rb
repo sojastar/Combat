@@ -229,4 +229,15 @@ describe Combat::Message do
     assert_equal  :some_targets,  message[:targets]
     assert_equal  :a_spell,       message[:param] 
   end
+
+  it "can create an 'cast_selected' message" do
+    message = Combat::Message.new_use_selected( :a_parent,
+                                                { targets:  :some_targets,
+                                                  param:    :an_item } )
+
+    assert_equal  :use_selected,  message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+    assert_equal  :an_item,       message[:param] 
+  end
 end

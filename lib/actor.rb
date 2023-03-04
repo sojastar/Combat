@@ -61,6 +61,37 @@ module Combat
     ############################################################################
     # 5. EFFECTS, BUFFS and AILMENTS :
     ############################################################################
+    def submessages_from_effects(source, effects, targets)
+      effects.map do |effect|
+        case effect[:type]
+        when :action
+          case effect[:on]
+          when :magic_attack
+            submessage                = Message.new_magic_attack self, targets
+            submessage[:magic_attack] = { magic_damage: rand(effect[:value]),
+                                          source:        source }
+            submessage
+
+          when :heal
+            submessage        = Message.new_heal self, targets
+            submessage[:heal] = { amount: rand(effect[:value]),
+                                  source: source }
+            submessage
+          end
+
+        when :buff
+          submessage            = Message.new_add_buff self, targets
+          submessage[:add_buff] = active_effect_from source, effect
+          submessage
+
+        when :ailment
+          submessage                = Message.new_add_ailment self, targets
+          submessage[:add_ailment]  = active_effect_from source, effect
+          submessage
+        end
+      end
+    end
+
     def active_effect_from(source_name, effect)
       { source: source_name,
         on:     effect[:on], 
@@ -157,37 +188,10 @@ module Combat
 
     ### 7.2 Cast :
     def cast(message)
-      spell = message[:param]
-
-      sub_messages  = Spell.effects(spell).map do |effect|
-                        case effect[:type]
-                        when :action
-                          case effect[:on]
-                          when :magic_attack
-                            submessage                = Message.new_magic_attack self, message[:targets]
-                            submessage[:magic_attack] = { magic_damage: rand(effect[:value]),
-                                                          spell:        Spell.name(spell) }
-                            submessage
-
-                          when :heal
-                            submessage        = Message.new_heal self, message[:targets]
-                            submessage[:heal] = { amount: rand(effect[:value]) }
-                            submessage
-                          end
-
-                        when :buff
-                          submessage            = Message.new_add_buff self, message[:targets]
-                          submessage[:add_buff] = active_effect_from Spell.name(spell), effect
-                          submessage
-
-                        when :ailment
-                          submessage                = Message.new_add_ailment self, message[:targets]
-                          submessage[:add_ailment]  = active_effect_from Spell.name(spell), effect
-                          submessage
-                        end
-
-
-                      end
+      spell         = message[:param]
+      sub_messages  = submessages_from_effects  Spell.name(spell),
+                                                Spell.effects(spell),
+                                                message[:targets]
 
       response                      = Combat::Message.new_cast self, message[:targets]
       response[:cast][:submessages] = sub_messages
@@ -195,22 +199,23 @@ module Combat
     end
 
     ### 7.3 Use :
-    def use(item)
+    def use(message)
+
     end
 
     ### 7.4 Equip :
-    def equip(item)
+    def equip(message)
       
     end
 
     ### 7.5 Give :
-    def give(item)
+    def give(message)
       
     end
     alias drop give
 
     ### 7.8 Wait :
-    def wait
+    def wait(message)
       
     end
     alias pass wait

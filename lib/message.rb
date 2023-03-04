@@ -122,7 +122,7 @@ module Combat
       message[:type]    = :heal
       message[:parent]  = parent
       message[:targets] = targets
-      message[:heal]    = { amount: 0 }
+      message[:heal]    = { amount: 0, source: '' }
 
       message
     end
@@ -271,6 +271,17 @@ module Combat
       message = new_empty
 
       message[:type]    = :cast_selected
+      message[:parent]  = parent
+      message[:targets] = menu_selection[:targets]
+      message[:param]   = menu_selection[:param]
+
+      message
+    end
+
+    def self.new_use_selected(parent,menu_selection)
+      message = new_empty
+
+      message[:type]    = :use_selected
       message[:parent]  = parent
       message[:targets] = menu_selection[:targets]
       message[:param]   = menu_selection[:param]

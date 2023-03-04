@@ -237,7 +237,7 @@ describe Combat::Actor do
     assert_equal    @actor,                         submessage[:parent]
     assert_equal    menu_selection[:targets],       submessage[:targets]
     assert_includes spell[:effects].first[:value],  submessage[:magic_attack][:magic_damage] 
-    assert_equal    spell[:name],                   submessage[:magic_attack][:spell]
+    assert_equal    spell[:name],                   submessage[:magic_attack][:source]
   end
 
   it 'can cast healing spells' do
