@@ -113,6 +113,7 @@ module Combat
 
     def active_effect_from(source, effect)
       { source: source,
+        name:   effect[:name],
         on:     effect[:on], 
         value:  rand(effect[:value]),
         turns:  effect[:turns] }

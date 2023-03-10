@@ -12,8 +12,9 @@ require_relative  '../lib/actor.rb'
 require_relative  '../lib/fight.rb'
 #require_relative  '../lib/player.rb'
 
-def same_effect(a1,a2)
-  a1[:source] == a2[:source]  &&
-  a1[:on]     == a2[:on]      &&
-  a1[:turns]  == a2[:turns]
+def same_effect(effect1,effect2)
+  effect1[:source]      == effect2[:source]     &&
+  effect1[:neffectme]   == effect2[:neffectme]  &&
+  effect1[:on]          == effect2[:on]         &&
+  effect1[:turns]       == effect2[:turns]
 end
