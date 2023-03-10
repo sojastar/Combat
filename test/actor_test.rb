@@ -286,7 +286,7 @@ describe Combat::Actor do
     assert_equal  :add_buff,                submessage[:type]
     assert_equal  @actor,                   submessage[:parent]
     assert_equal  menu_selection[:targets], submessage[:targets]
-    assert        same_effect(ailment, submessage[:add_buff])
+    assert        same_effect?(ailment, submessage[:add_buff])
   end
 
   it 'casts ailment spells' do
@@ -310,7 +310,7 @@ describe Combat::Actor do
     assert_equal  :add_ailment,             submessage[:type]
     assert_equal  @actor,                   submessage[:parent]
     assert_equal  menu_selection[:targets], submessage[:targets]
-    assert        same_effect(ailment, submessage[:add_ailment])
+    assert        same_effect?(ailment, submessage[:add_ailment])
   end
 
   it 'casts spells with several effects' do
@@ -335,13 +335,13 @@ describe Combat::Actor do
     assert_equal  :add_ailment,               first_submessage[:type]
     assert_equal  @actor,                     first_submessage[:parent]
     assert_equal  menu_selection[:targets],   first_submessage[:targets]
-    assert        same_effect(ailments.first, first_submessage[:add_ailment])
+    assert        same_effect?(ailments.first, first_submessage[:add_ailment])
     
     second_submessage = response[:cast][:submessages].last
     assert_equal  :add_ailment,               second_submessage[:type]
     assert_equal  @actor,                     second_submessage[:parent]
     assert_equal  menu_selection[:targets],   second_submessage[:targets]
-    assert        same_effect(ailments.last,  second_submessage[:add_ailment])
+    assert        same_effect?(ailments.last,  second_submessage[:add_ailment])
   end
 
   ### 5.4 Use :
@@ -625,8 +625,8 @@ describe Combat::Actor do
                     hit[:equipment_magic_defense] -
                     hit[:buff_magic_defense], 0 ].max,
                                                 hit[:magic_damage]
-    assert        same_effect(ailment, hit[:ailments].first)
-    assert        same_effect(ailment, @actor.active_ailments.first)
+    assert        same_effect?(ailment, hit[:ailments].first)
+    assert        same_effect?(ailment, @actor.active_ailments.first)
     assert_equal  hit[:physical_damage] +
                   hit[:magic_damage],
                                                 hit[:total_damage]
