@@ -66,10 +66,22 @@ module Combat
         case effect[:type]
         when :action
           case effect[:on]
+          when :attack
+            submessage          = Message.new_attack self, targets
+            submessage[:attack] = { strength_damage:  rand(effect[:value]),
+                                    weapons:          [ source ],
+                                    weapon_damage:    0,
+                                    magic_weapons:    [],
+                                    magic_damage:     0,
+                                    ailments:         [] }
+
+            submessage
+
           when :magic_attack
             submessage                = Message.new_magic_attack self, targets
             submessage[:magic_attack] = { magic_damage: rand(effect[:value]),
-                                          source:        source }
+                                          ailments:     [],
+                                          spell:        source }
             submessage
 
           when :heal
@@ -99,8 +111,8 @@ module Combat
       end
     end
 
-    def active_effect_from(source_name, effect)
-      { source: source_name,
+    def active_effect_from(source, effect)
+      { source: source,
         on:     effect[:on], 
         value:  rand(effect[:value]),
         turns:  effect[:turns] }
@@ -180,7 +192,11 @@ module Combat
       }
 
       ailments  =  @equipment.select { |piece| Equipment.has_ailment_effect? piece }
-                             .map { |piece| Equipment.ailment_effects piece }
+                             .map { |piece|
+                                Equipment.ailment_effects(piece).each { |ailment|
+                                  active_effect_from piece, ailment 
+                                }
+                             }
                              .flatten
 
       response            = Message.new_attack self, message[:targets]
@@ -196,18 +212,29 @@ module Combat
     ### 7.2 Cast :
     def cast(message)
       spell         = message[:param]
-      sub_messages  = submessages_from_effects  Spell.name(spell),
+      sub_messages  = submessages_from_effects  spell,
                                                 Spell.effects(spell),
                                                 message[:targets]
 
-      response                      = Combat::Message.new_cast self, message[:targets]
+      response                      = Message.new_cast self, message[:targets]
+      response[:cast][:spell]       = spell
       response[:cast][:submessages] = sub_messages
       response
     end
 
     ### 7.3 Use :
     def use(message)
+      item          = message[:param]
+      sub_messages  = submessages_from_effects  item.type,
+                                                item.use,
+                                                message[:targets]
 
+      @items.delete(item) if item.depleted?
+
+      response                      = Message.new_use self, message[:targets]
+      response[:use][:item]         = item.type
+      response[:use][:submessages]  = sub_messages
+      response
     end
 
     ### 7.4 Equip :
@@ -279,16 +306,7 @@ module Combat
                         buff_magic_defense ].max
 
       ### Ailments :
-      #new_ailments  = attack[:ailments].map { |ailment| ailment.dup }
-      weapons_list  = attack[:weapons].map { |weapon|
-                        Combat::Equipment.name weapon
-                      }
-                      .join(', ')
-      new_ailments  = attack[:ailments].map do |ailment|
-        active_effect_from weapons_list, ailment
-      end
-      #new_ailments.each { |ailment| @active_ailments << ailment }
-      new_ailments.each { |ailment| push_effect_to ailment, @active_ailments }
+      attack[:ailments].each { |ailment| push_effect_to ailment, @active_ailments }
 
       ### Final damage calculation :
       total_damage  = physical_damage + magic_damage
@@ -304,7 +322,7 @@ module Combat
                               equipment_magic_defense:  equipment_magic_defense,
                               buff_magic_defense:       buff_magic_defense,
                               magic_damage:             magic_damage,
-                              ailments:                 new_ailments,
+                              ailments:                 attack[:ailments],
                               total_damage:             total_damage }
       response
     end
@@ -363,30 +381,46 @@ module Combat
 
       response            = Message.new_got_heal self, nil
       response[:got_heal] = { amount: heal_amount,
-                              health: @health }
+                              health: @health,
+                              source: message[:heal][:source] }
       response
     end
 
-    ### 8.4 Add Buff :
+    ### 8.4 Add Mana :
+    def add_mana(message)
+      amount  = message[:add_mana][:amount]
+
+      if @mana + amount <= @max_mana
+        @mana    += amount
+        add_mana_amount = amount
+      else
+        add_mana_amount = @max_mana - @mana
+        @mana           = @max_mana
+      end
+
+      response            = Message.new_got_add_mana self, nil
+      response[:got_heal] = { amount: add_mana_amount,
+                              mana:   @mana,
+                              source: message[:add_mana][:source] }
+      response
+    end
+
+    ### 8.5 Add Buff :
     def add_buff(message)
-      @active_buffs << message[:add_buff]
+      push_effect_to message[:add_buff], @active_buffs
 
       response            = Message.new_got_buff self, nil
       response[:got_buff] = message[:add_buff]
       response
     end
 
-    ### 8.5 Add Ailment :
+    ### 8.6 Add Ailment :
     def add_ailment(message)
       push_effect_to message[:add_ailment], @active_ailments
 
       response                = Message.new_got_ailment self, nil 
       response[:got_ailment]  = message[:add_ailment]
       response
-    end
-
-    ### 8.6 Add Mana :
-    def add_mana(message)
     end
 
     def receive(item)

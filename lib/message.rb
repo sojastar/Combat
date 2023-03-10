@@ -67,7 +67,7 @@ module Combat
       message[:targets]       = targets
       message[:magic_attack]  = { magic_damage: 0,
                                   ailments:     [],
-                                  spell:        nil }
+                                  spell:        :none }
 
       message
     end
@@ -78,7 +78,8 @@ module Combat
       message[:type]    = :cast
       message[:parent]  = parent
       message[:targets] = targets
-      message[:cast]    = { submessages: [] }
+      message[:cast]    = { spell:        :none,
+                            submessages:  [] }
 
       message
     end
@@ -89,7 +90,8 @@ module Combat
       message[:type]    = :use
       message[:parent]  = parent
       message[:targets] = targets
-      message[:use]     = { submessages: [] }
+      message[:use]     = { item:         :none,
+                            submessages:  [] }
 
       message
     end
@@ -112,28 +114,6 @@ module Combat
       message[:parent]  = parent
       message[:targets]   = targets
       message[:x] = {}
-
-      message
-    end
-
-    def self.new_heal(parent,targets)
-      message = new_empty
-
-      message[:type]    = :heal
-      message[:parent]  = parent
-      message[:targets] = targets
-      message[:heal]    = { amount: 0, source: '' }
-
-      message
-    end
-
-    def self.new_add_mana(parent,targets)
-      message  = new_empty
-
-      message[:type]      = :add_mana
-      message[:parent]    = parent
-      message[:targets]   = targets
-      message[:add_mana]  = { amount: 0, source: '' }
 
       message
     end
@@ -181,7 +161,18 @@ module Combat
                                   buff_magic_defense:       0,
                                   magic_damage:             0,
                                   ailments:                 [],
-                                  spell:                    nil }
+                                  spell:                    :none }
+
+      message
+    end
+
+    def self.new_heal(parent,targets)
+      message = new_empty
+
+      message[:type]    = :heal
+      message[:parent]  = parent
+      message[:targets] = targets
+      message[:heal]    = { amount: 0, source: :none }
 
       message
     end
@@ -192,8 +183,29 @@ module Combat
       message[:type]      = :got_heal
       message[:parent]    = parent
       message[:targets]   = targets
-      message[:got_heal]  = { amount:  0,
-                              health: -1 }
+      message[:got_heal]  = { amount: 0, health: -1, source: :none }
+
+      message
+    end
+
+    def self.new_add_mana(parent,targets)
+      message  = new_empty
+
+      message[:type]      = :add_mana
+      message[:parent]    = parent
+      message[:targets]   = targets
+      message[:add_mana]  = { amount: 0, source: :none }
+
+      message
+    end
+
+    def self.new_got_add_mana(parent,targets)
+      message = new_empty
+
+      message[:type]          = :got_add_mana
+      message[:parent]        = parent
+      message[:targets]       = targets
+      message[:got_add_mana]  = { amount: 0, mana: -1, source: :none }
 
       message
     end

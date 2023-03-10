@@ -62,7 +62,7 @@ describe Combat::Actor do
   ############################################################################
   # 4. EFFECTS, BUFFS and AILMENTS :
   ############################################################################
-  it 'can make active buffs from spell effects' do
+  it 'makes active buffs from spell effects' do
     spell         = Combat::Spell::SPELLS[:raise_magic_defense]
     spell_effect  = spell[:effects].first
     active_effect = @actor.active_effect_from spell[:name], spell_effect
@@ -73,19 +73,20 @@ describe Combat::Actor do
     assert_equal    spell_effect[:turns], active_effect[:turns]
   end
 
-  it 'can make active ailments from equipment effects' do
-    equipment         = Combat::Equipment::PIECES[:poisoned_dagger]
+  it 'makes active ailments from equipment effects' do
+    equipment_id      = :poisoned_dagger
+    equipment         = Combat::Equipment::PIECES[equipment_id]
     equipment_effect  = equipment[:effects].last
-    active_effect     = @actor.active_effect_from equipment[:name],
+    active_effect     = @actor.active_effect_from equipment_id,
                                                   equipment_effect
 
-    assert_equal    equipment[:name],         active_effect[:source]
+    assert_equal    equipment_id,             active_effect[:source]
     assert_equal    equipment_effect[:on],    active_effect[:on]
     assert_includes equipment_effect[:value], active_effect[:value]
     assert_equal    equipment_effect[:turns], active_effect[:turns]
   end
 
-  it 'can make active ailments from spell effects' do
+  it 'makes active ailments from spell effects' do
     spell         = Combat::Spell::SPELLS[:poison]
     spell_effect  = spell[:effects].first
     active_effect = @actor.active_effect_from spell[:name], spell_effect
@@ -96,7 +97,7 @@ describe Combat::Actor do
     assert_equal    spell_effect[:turns], active_effect[:turns]
   end
 
-  it 'can push new buffs to the corresponding active array' do
+  it 'pushs new buffs to the corresponding active array' do
     other_buff1   = { name: 'war cry',        on: :attack,        value: 0, turns: 3 }
     other_buff2   = { name: 'magic barrier',  on: :magic_attack,  value: 0, turns: 4 }
     buff          = { name: 'shield',         on: :defense,       value: 2, turns: 2 }
@@ -123,7 +124,7 @@ describe Combat::Actor do
     assert_equal stronger_buff[:turns],  @actor.active_buffs[1][:turns]
   end
 
-  it 'can push new ailments to the corresponding active array' do
+  it 'pushes new ailments to the corresponding active array' do
     other_ailment1    = { name: 'Sleep',  on: :sleep,  value: 0, turns: 3 }
     other_ailment2    = { name: 'Drunk',  on: :drunk,  value: 0, turns: 4 }
     ailment           = { name: 'Poison', on: :health, value: 2, turns: 2 }
@@ -218,7 +219,7 @@ describe Combat::Actor do
   end
 
   ### 5.2 Cast :
-  it 'can cast magic attack spells' do
+  it 'casts magic attack spells' do
     spell_id        = :fire_ball
     spell           = Combat::Spell::SPELLS[spell_id]
 
@@ -230,17 +231,18 @@ describe Combat::Actor do
     assert_equal  @actor,                   response[:parent]
     assert_equal  menu_selection[:targets], response[:targets]
 
-    assert_equal  1, response[:cast][:submessages].length
+    assert_equal  spell_id, response[:cast][:spell]
+    assert_equal  1,        response[:cast][:submessages].length
     
     submessage  = response[:cast][:submessages].first
     assert_equal    :magic_attack,                  submessage[:type]
     assert_equal    @actor,                         submessage[:parent]
     assert_equal    menu_selection[:targets],       submessage[:targets]
     assert_includes spell[:effects].first[:value],  submessage[:magic_attack][:magic_damage] 
-    assert_equal    spell[:name],                   submessage[:magic_attack][:source]
+    assert_equal    spell_id,                       submessage[:magic_attack][:spell]
   end
 
-  it 'can cast healing spells' do
+  it 'casts healing spells' do
     spell_id        = :heal
     spell           = Combat::Spell::SPELLS[spell_id]
 
@@ -252,19 +254,21 @@ describe Combat::Actor do
     assert_equal  @actor,                   response[:parent]
     assert_equal  menu_selection[:targets], response[:targets]
 
-    assert_equal  1, response[:cast][:submessages].length
+    assert_equal  spell_id, response[:cast][:spell]
+    assert_equal  1,        response[:cast][:submessages].length
     
     submessage  = response[:cast][:submessages].first
-    assert_equal  :heal,                            submessage[:type]
-    assert_equal  @actor,                           submessage[:parent]
-    assert_equal  menu_selection[:targets],         submessage[:targets]
+    assert_equal    :heal,                          submessage[:type]
+    assert_equal    @actor,                         submessage[:parent]
+    assert_equal    menu_selection[:targets],       submessage[:targets]
     assert_includes spell[:effects].first[:value],  submessage[:heal][:amount]
+    assert_equal    spell_id,                       submessage[:heal][:source]
   end
 
-  it 'can cast buff spells' do
+  it 'casts buff spells' do
     spell_id        = :raise_defense
     spell           = Combat::Spell::SPELLS[spell_id]
-    ailment         = @actor.active_effect_from spell[:name],
+    ailment         = @actor.active_effect_from spell_id,
                                                 spell[:effects].first
 
     menu_selection  = { targets: [ :some, :targets ], param: spell_id }
@@ -275,6 +279,7 @@ describe Combat::Actor do
     assert_equal  @actor,                   response[:parent]
     assert_equal  menu_selection[:targets], response[:targets]
 
+    assert_equal  spell_id, response[:cast][:spell]
     assert_equal  1, response[:cast][:submessages].length
     
     submessage  = response[:cast][:submessages].first
@@ -284,10 +289,10 @@ describe Combat::Actor do
     assert        same_effect(ailment, submessage[:add_buff])
   end
 
-  it 'can cast ailment spells' do
+  it 'casts ailment spells' do
     spell_id        = :poison
     spell           = Combat::Spell::SPELLS[spell_id]
-    ailment         = @actor.active_effect_from spell[:name],
+    ailment         = @actor.active_effect_from spell_id,
                                                 spell[:effects].first
 
     menu_selection  = { targets: [ :some, :targets ], param: spell_id }
@@ -298,7 +303,8 @@ describe Combat::Actor do
     assert_equal  @actor,                   response[:parent]
     assert_equal  menu_selection[:targets], response[:targets]
 
-    assert_equal  1, response[:cast][:submessages].length
+    assert_equal  spell_id, response[:cast][:spell]
+    assert_equal  1,        response[:cast][:submessages].length
     
     submessage  = response[:cast][:submessages].first
     assert_equal  :add_ailment,             submessage[:type]
@@ -307,11 +313,11 @@ describe Combat::Actor do
     assert        same_effect(ailment, submessage[:add_ailment])
   end
 
-  it 'can cast spells with several effects' do
+  it 'casts spells with several effects' do
     spell_id        = :toxic_sleep
     spell           = Combat::Spell::SPELLS[spell_id]
     ailments        = spell[:effects].map do |effect|
-                        @actor.active_effect_from spell[:name], effect
+                        @actor.active_effect_from spell_id, effect
                       end
 
     menu_selection  = { targets: [ :some, :targets ], param: spell_id }
@@ -322,7 +328,8 @@ describe Combat::Actor do
     assert_equal  @actor,                   response[:parent]
     assert_equal  menu_selection[:targets], response[:targets]
 
-    assert_equal  2, response[:cast][:submessages].length
+    assert_equal  spell_id, response[:cast][:spell]
+    assert_equal  2,        response[:cast][:submessages].length
     
     first_submessage  = response[:cast][:submessages].first
     assert_equal  :add_ailment,               first_submessage[:type]
@@ -338,6 +345,112 @@ describe Combat::Actor do
   end
 
   ### 5.4 Use :
+  it 'uses healing items' do
+    item = Combat::Item.new_health_potion
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1, response[:use][:submessages].length
+
+    heal_message  = response[:use][:submessages].first
+
+    assert_equal    :heal,                      heal_message[:type]
+    assert_equal    @actor,                     heal_message[:parent]
+    assert_equal    menu_selection[:targets],   heal_message[:targets]
+    assert_includes item.effects.first[:value], heal_message[:heal][:amount]
+    assert_equal    item.type,                  heal_message[:heal][:source]
+  end
+
+  it 'uses mana refill items' do
+    item = Combat::Item.new_mana_potion
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1, response[:use][:submessages].length
+
+    heal_message  = response[:use][:submessages].first
+
+    assert_equal    :add_mana,                  heal_message[:type]
+    assert_equal    @actor,                     heal_message[:parent]
+    assert_equal    menu_selection[:targets],   heal_message[:targets]
+    assert_includes item.effects.first[:value], heal_message[:add_mana][:amount]
+    assert_equal    item.type,                  heal_message[:add_mana][:source]
+  end
+
+  it 'uses items with multiple effects' do
+    item = Combat::Item.new_ambroisie
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  2, response[:use][:submessages].length
+
+    submessage1 = response[:use][:submessages].first
+
+    assert_equal    :heal,                      submessage1[:type]
+    assert_equal    @actor,                     submessage1[:parent]
+    assert_equal    menu_selection[:targets],   submessage1[:targets]
+    assert_includes item.effects.first[:value], submessage1[:heal][:amount]
+    assert_equal    item.type,                  submessage1[:heal][:source]
+
+    submessage2 = response[:use][:submessages].last
+
+    assert_equal    :add_mana,                  submessage2[:type]
+    assert_equal    @actor,                     submessage2[:parent]
+    assert_equal    menu_selection[:targets],   submessage2[:targets]
+    assert_includes item.effects.last[:value],  submessage2[:add_mana][:amount]
+    assert_equal    item.type,                       submessage2[:add_mana][:source]
+  end
+
+  it 'uses attack items' do
+    item = Combat::Item.new_blowpipe
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1, response[:use][:submessages].length
+
+    attack_message = response[:use][:submessages].first
+
+    assert_equal    :attack,                    attack_message[:type]
+    assert_equal    @actor,                     attack_message[:parent]
+    assert_equal    menu_selection[:targets],   attack_message[:targets]
+  end
+
+
+  it 'uses magic attack items' do
+    @actor.items << Combat::Item.new_fire_wand
+  end
+
+  it 'uses buff items' do
+    
+  end
 
 
   ### 5.5 Equip :
@@ -481,14 +594,14 @@ describe Combat::Actor do
     weapon_id               = :poisoned_dagger
     weapon_name             = Combat::Equipment.name weapon_id
     ailment_effect          = Combat::Equipment::PIECES[weapon_id][:effects].last 
-    ailment                 = @actor.active_effect_from weapon_name, ailment_effect  
+    ailment                 = @actor.active_effect_from weapon_id, ailment_effect  
     attack_message          = Combat::Message.new_attack :a_parent, @actor
     attack                  = { strength_damage:  2,
                                 weapons:          [ weapon_id ],
                                 weapon_damage:    1,
                                 magic_weapons:    [],
                                 magic_damage:     0,
-                                ailments:         [ ailment_effect ] }
+                                ailments:         [ @actor.active_effect_from(weapon_id, ailment_effect) ] }
     attack_message[:attack] = attack
     response                = @actor.got_hit attack_message
 
@@ -609,8 +722,13 @@ describe Combat::Actor do
     assert_equal  @actor.max_health,                response[:got_heal][:health]
   end
 
-  ### 6.4 Add Buff :
-  it 'can get buffs' do
+  ### 6.4 Add Mana :
+  it 'restores mana' do
+    
+  end
+
+  ### 6.5 Add Buff :
+  it 'gets buffs' do
     buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
     spell                   = Combat::Spell::SPELLS[:raise_attack]
     buff                    = spell[:effects].first
@@ -629,8 +747,8 @@ describe Combat::Actor do
     assert_equal    buff_message[:add_buff],  response[:got_buff]
   end
 
-  ### 6.5 Add Ailments :
-  it 'can get ailments' do
+  ### 6.6 Add Ailments :
+  it 'gets ailments' do
     ailment_message               = Combat::Message.new_add_ailment :a_parent, [ @actor ]
     spell                         = Combat::Spell::SPELLS[:poison]
     ailment                       = spell[:effects].first
