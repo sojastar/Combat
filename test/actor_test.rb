@@ -441,11 +441,45 @@ describe Combat::Actor do
     assert_equal    :attack,                    attack_message[:type]
     assert_equal    @actor,                     attack_message[:parent]
     assert_equal    menu_selection[:targets],   attack_message[:targets]
+
+    attack = attack_message[:attack]
+
+    assert_equal    0,              attack[:strength_damage] 
+    assert_equal    [ :blowpipe ],  attack[:weapons]
+    assert_includes Combat::Item::ITEMS[item.type][:effects].first[:value],
+                                    attack[:weapon_damage]
+    assert_empty                    attack[:magic_weapons]
+    assert_equal    0,              attack[:magic_damage]
+    assert_empty                    attack[:ailments]
   end
 
 
   it 'uses magic attack items' do
-    @actor.items << Combat::Item.new_fire_wand
+    item =  Combat::Item.new_fire_wand
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1, response[:use][:submessages].length
+
+    magic_attack_message = response[:use][:submessages].first
+
+    assert_equal    :magic_attack,              magic_attack_message[:type]
+    assert_equal    @actor,                     magic_attack_message[:parent]
+    assert_equal    menu_selection[:targets],   magic_attack_message[:targets]
+
+    magic_attack = magic_attack_message[:magic_attack]
+
+    assert_includes Combat::Item::ITEMS[:fire_wand][:effects].first[:value],
+                                magic_attack[:magic_damage]
+    assert_empty                magic_attack[:ailments]
+    assert_equal    :fire_wand, magic_attack[:spell]
   end
 
   it 'uses buff items' do

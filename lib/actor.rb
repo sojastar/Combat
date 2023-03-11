@@ -68,9 +68,9 @@ module Combat
           case effect[:on]
           when :attack
             submessage          = Message.new_attack self, targets
-            submessage[:attack] = { strength_damage:  rand(effect[:value]),
+            submessage[:attack] = { strength_damage:  0,
                                     weapons:          [ source ],
-                                    weapon_damage:    0,
+                                    weapon_damage:    rand(effect[:value]),
                                     magic_weapons:    [],
                                     magic_damage:     0,
                                     ailments:         [] }
