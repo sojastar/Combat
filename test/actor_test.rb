@@ -445,7 +445,7 @@ describe Combat::Actor do
     attack = attack_message[:attack]
 
     assert_equal    0,              attack[:strength_damage] 
-    assert_equal    [ :blowpipe ],  attack[:weapons]
+    assert_equal    [ item.type ],  attack[:weapons]
     assert_includes Combat::Item::ITEMS[item.type][:effects].first[:value],
                                     attack[:weapon_damage]
     assert_empty                    attack[:magic_weapons]
@@ -453,6 +453,45 @@ describe Combat::Actor do
     assert_empty                    attack[:ailments]
   end
 
+  it 'uses attack and ailment items' do
+    item = Combat::Item.new_poisoned_blowpipe
+    @actor.items << item
+    
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  2, response[:use][:submessages].length
+
+    attack_message = response[:use][:submessages][0]
+
+    assert_equal    :attack,                    attack_message[:type]
+    assert_equal    @actor,                     attack_message[:parent]
+    assert_equal    menu_selection[:targets],   attack_message[:targets]
+
+    attack = attack_message[:attack]
+
+    assert_equal    0,              attack[:strength_damage] 
+    assert_equal    [ item.type ],  attack[:weapons]
+    assert_includes Combat::Item::ITEMS[item.type][:effects][0][:value],
+                                    attack[:weapon_damage]
+    assert_empty                    attack[:magic_weapons]
+    assert_equal    0,              attack[:magic_damage]
+    assert_empty                    attack[:ailments]
+
+    ailment_message = response[:use][:submessages][1][:add_ailment]
+    ailment         = Combat::Item::ITEMS[item.type][:effects][1]
+
+    assert_equal    item.type,        ailment_message[:source]
+    assert_equal    ailment[:name],   ailment_message[:name]
+    assert_includes ailment[:value],  ailment_message[:value]
+    assert_equal    ailment[:on],     ailment_message[:on]
+    assert_equal    ailment[:turns],  ailment_message[:turns]
+  end
 
   it 'uses magic attack items' do
     item =  Combat::Item.new_fire_wand
@@ -479,11 +518,56 @@ describe Combat::Actor do
     assert_includes Combat::Item::ITEMS[:fire_wand][:effects].first[:value],
                                 magic_attack[:magic_damage]
     assert_empty                magic_attack[:ailments]
-    assert_equal    :fire_wand, magic_attack[:spell]
+    assert_equal    item.type,  magic_attack[:spell]
+  end
+
+  it 'uses items that provoke ailments' do
+    item = Combat::Item.new_poison_wand
+    @actor.items << item
+
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1,            response[:use][:submessages].length
+    assert_equal  :add_ailment, response[:use][:submessages].first[:type]
+
+    ailment_message = response[:use][:submessages].first[:add_ailment]
+    ailment         = Combat::Item::ITEMS[item.type][:effects].first
+
+    assert_equal    item.type,        ailment_message[:source]
+    assert_equal    ailment[:name],   ailment_message[:name]
+    assert_includes ailment[:value],  ailment_message[:value]
+    assert_equal    ailment[:on],     ailment_message[:on]
+    assert_equal    ailment[:turns],  ailment_message[:turns]
   end
 
   it 'uses buff items' do
-    
+    item = Combat::Item.new_attack_potion
+    @actor.items << item
+
+    menu_selection  = { targets: [ :some, :targets ], param: item }
+    use_message     = Combat::Message.new_use_selected @actor, menu_selection
+    response        = @actor.use use_message 
+
+    assert_equal  :use,                     response[:type]
+    assert_equal  @actor,                   response[:parent]
+    assert_equal  menu_selection[:targets], response[:targets]
+
+    assert_equal  1,          response[:use][:submessages].length
+    assert_equal  :add_buff,  response[:use][:submessages].first[:type]
+
+    buff_message  = response[:use][:submessages].first[:add_buff]
+    buff          = Combat::Item::ITEMS[item.type][:effects].first
+
+    assert_equal    item.type,      buff_message[:source]
+    assert_equal    buff[:on],      buff_message[:on]
+    assert_includes buff[:value],   buff_message[:value]
+    assert_equal    buff[:turns],   buff_message[:turns]
   end
 
 
