@@ -17,7 +17,7 @@ module Combat
                 :strength, :intelligence,
                 :equipment,
                 :items,
-                :spells,# :active_effects,
+                :spells,
                 :active_buffs, :active_ailments,
                 :can_play
 
@@ -39,7 +39,9 @@ module Combat
       @intelligence     = params[:intelligence]
 
       @equipment        = params[:equipment]
+
       @items            = params[:items].map { |item_type| Combat::Item.new item_type }
+      
       @spells           = params[:spells]
       
       @active_buffs     = []
@@ -182,17 +184,17 @@ module Combat
     def attack(message)
       strength_damage   = rand(0..@strength)
 
-      weapons       = @equipment.select { |piece| Equipment.raise_attack? piece }
+      weapons       = @equipment.values.select { |piece| Equipment.raise_attack? piece }
       weapon_damage = weapons.inject(0) { |damage,weapon|
         damage + Equipment.attack_value(weapon)
       }
 
-      magic_weapons = @equipment.select { |piece| Equipment.raise_magic_attack? piece }
+      magic_weapons = @equipment.values.select { |piece| Equipment.raise_magic_attack? piece }
       magic_damage  = magic_weapons.inject(0) { |damage,weapon|
         damage + Equipment.magic_attack_value(weapon)
       }
 
-      ailments  =  @equipment.select { |piece| Equipment.has_ailment_effect? piece }
+      ailments  =  @equipment.values.select { |piece| Equipment.has_ailment_effect? piece }
                              .map { |piece|
                                 Equipment.ailment_effects(piece).each { |ailment|
                                   active_effect_from piece, ailment 
@@ -240,7 +242,7 @@ module Combat
 
     ### 7.4 Equip :
     def equip(message)
-      
+      equipment     = message[:param] 
     end
 
     ### 7.5 Give :
@@ -266,7 +268,7 @@ module Combat
       attack = message[:attack]
 
       ### Physical damage :
-      equipment_defense = @equipment.filter { |piece|
+      equipment_defense = @equipment.values.filter { |piece|
                             Equipment.raise_defense? piece
                           }
                           .inject(0) { |defense,piece|
@@ -287,7 +289,7 @@ module Combat
                           buff_defense ].max
 
       ### Magic damage :
-      equipment_magic_defense = @equipment.filter { |piece|
+      equipment_magic_defense = @equipment.values.filter { |piece|
                                   Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|
@@ -335,7 +337,7 @@ module Combat
       attack = message[:magic_attack]
 
       ### Magic damage :
-      equipment_magic_defense = @equipment.filter { |piece|
+      equipment_magic_defense = @equipment.values.filter { |piece|
                                   Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|

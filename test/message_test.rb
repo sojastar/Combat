@@ -56,9 +56,9 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  0,      message[:magic_attack][:magic_damage]        
-    assert_empty          message[:magic_attack][:ailments]
-    assert_equal  :none,  message[:magic_attack][:spell]
+    assert_equal  0,  message[:magic_attack][:magic_damage]        
+    assert_empty      message[:magic_attack][:ailments]
+    assert_nil        message[:magic_attack][:spell]
   end
 
   it 'can create an empty cast message' do
@@ -68,8 +68,8 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  :none,  message[:cast][:spell]
-    assert_empty          message[:cast][:submessages]
+    assert_nil    message[:cast][:spell]
+    assert_empty  message[:cast][:submessages]
   end
 
   it 'can create an empty use message' do
@@ -79,16 +79,18 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  :none,  message[:use][:item]
-    assert_empty          message[:use][:submessages]
+    assert_nil    message[:use][:item]
+    assert_empty  message[:use][:submessages]
   end
 
   it 'can create an empty equip message' do
-    #message  = Combat::Message.new_equip :some_targets
+    message  = Combat::Message.new_equip :a_parent, :some_targets
 
-    #assert_equal  x,  message[:type]
+    assert_equal  :equip,         message[:type]           
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
 
-    #assert_equal  y, message[:x][:z]
+    assert_nil  message[:equip][:equipment]
   end
 
   it 'can create an empty give message' do
@@ -131,10 +133,10 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  0,    message[:got_magic_hit][:buff_magic_defense]
-    assert_equal  0,    message[:got_magic_hit][:magic_damage]
-    assert_equal [],    message[:got_magic_hit][:ailments]
-    assert_equal :none, message[:got_magic_hit][:spell]
+    assert_equal  0,  message[:got_magic_hit][:buff_magic_defense]
+    assert_equal  0,  message[:got_magic_hit][:magic_damage]
+    assert_equal [],  message[:got_magic_hit][:ailments]
+    assert_nil        message[:got_magic_hit][:spell]
   end
 
   it 'can create an empty heal message' do
@@ -144,8 +146,8 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal  0,      message[:heal][:amount]
-    assert_equal  :none,  message[:heal][:source]
+    assert_equal  0,  message[:heal][:amount]
+    assert_nil        message[:heal][:source]
   end
 
   it 'can create an empty got heal message' do
@@ -155,9 +157,9 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal      0,  message[:got_heal][:amount]
-    assert_equal     -1,  message[:got_heal][:health]
-    assert_equal  :none,  message[:got_heal][:source]
+    assert_equal   0, message[:got_heal][:amount]
+    assert_equal  -1, message[:got_heal][:health]
+    assert_nil        message[:got_heal][:source]
   end
 
   it 'can create an empty add_mana message' do
@@ -167,8 +169,8 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal      0,  message[:add_mana][:amount]
-    assert_equal  :none,  message[:add_mana][:source]
+    assert_equal  0,  message[:add_mana][:amount]
+    assert_nil        message[:add_mana][:source]
   end
 
   it 'can create an empty got add mana message' do
@@ -178,9 +180,9 @@ describe Combat::Message do
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
 
-    assert_equal     0, message[:got_add_mana][:amount]
-    assert_equal    -1, message[:got_add_mana][:mana]
-    assert_equal :none, message[:got_add_mana][:source]
+    assert_equal   0, message[:got_add_mana][:amount]
+    assert_equal  -1, message[:got_add_mana][:mana]
+    assert_nil        message[:got_add_mana][:source]
   end
 
   it 'can create an empty add buff message' do

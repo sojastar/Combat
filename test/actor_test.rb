@@ -6,13 +6,19 @@ describe Combat::Actor do
   # 1. TESTS SETUP :
   ##############################################################################
   before do
+    @no_equipment  = { head:       nil,
+                    neck:       nil,
+                    left_hand:  nil,
+                    right_hand: nil,
+                    torso:      nil,
+                    legs:       nil }
     @actor  = Combat::Actor.new(  { type:         :player,
                                     name:         'The GUY!' ,
-                                    strength:      3,
-                                    intelligence:  2,
+                                    strength:     3,
+                                    intelligence: 2,
                                     health:       20,
-                                    mana:          5,
-                                    equipment:    [],
+                                    mana:         5,
+                                    equipment:    @no_equipment,
                                     items:        [],
                                     spells:       Combat::Spell::SPELLS } )
   end
@@ -29,7 +35,8 @@ describe Combat::Actor do
     assert_equal  20,         @actor.health
     assert_equal  5,          @actor.mana
 
-    assert_empty  @actor.equipment
+    assert_equal  @no_equipment, @actor.equipment
+
     assert_empty  @actor.items
 
     assert_equal  Combat::Spell::SPELLS,  @actor.spells
@@ -158,7 +165,7 @@ describe Combat::Actor do
 
   ### 5.1 Attack :
   it 'attacks with a normal weapon' do
-    @actor.equipment << :long_sword
+    @actor.equipment[:right_hand] << :long_sword
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
     response        = @actor.attack attack_message
@@ -178,7 +185,7 @@ describe Combat::Actor do
   end
 
   it 'attacks with magic weapons' do
-    @actor.equipment << :magic_sword
+    @actor.equipment[:right_hand] << :magic_sword
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
     response        = @actor.attack attack_message
@@ -198,7 +205,7 @@ describe Combat::Actor do
   end
 
   it 'attacks with weapons inflicting ailments' do
-    @actor.equipment << :poisoned_dagger
+    @actor.equipment[:right_hand] << :poisoned_dagger
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
     response        = @actor.attack attack_message
@@ -589,7 +596,7 @@ describe Combat::Actor do
     # Preping the actor :
     armor_id  = :leather_armor
     armor     = Combat::Equipment::PIECES[armor_id][:effects].first
-    @actor.equipment << armor_id
+    @actor.equipment[:torso] << armor_id
 
     defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
     @actor.active_buffs << defense_buff
@@ -641,11 +648,11 @@ describe Combat::Actor do
     # Preping the actor :
     armor_id  = :leather_armor
     armor     = Combat::Equipment::PIECES[armor_id][:effects].first
-    @actor.equipment << armor_id
+    @actor.equipment[:torso] << armor_id
 
     helm_id   = :magic_helm
     helm      = Combat::Equipment::PIECES[helm_id][:effects].first
-    @actor.equipment << helm_id
+    @actor.equipment[:head] << helm_id
 
     defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
     @actor.active_buffs << defense_buff
@@ -696,11 +703,11 @@ describe Combat::Actor do
     # Preping the actor :
     armor_id  = :leather_armor
     armor     = Combat::Equipment::PIECES[armor_id][:effects].first
-    @actor.equipment << armor_id
+    @actor.equipment[:torso] << armor_id
 
     helm_id   = :magic_helm
     helm      = Combat::Equipment::PIECES[helm_id][:effects].first
-    @actor.equipment << helm_id
+    @actor.equipment[:head] << helm_id
 
     defense_buff        = { source: 'Shield', on: :defense, value: 2, turns: 3 }
     @actor.active_buffs << defense_buff
@@ -757,7 +764,7 @@ describe Combat::Actor do
     # Prep the actor to test equipment and buff influence on magic attack :
     helm_id   = :magic_helm
     helm      = Combat::Equipment::PIECES[helm_id][:effects].first
-    @actor.equipment << helm_id
+    @actor.equipment[:head] << helm_id
 
     magic_defense_buff  = { source: 'Magic Barrier', on: :magic_defense, value: 2, turns: 3 }
     @actor.active_buffs << magic_defense_buff

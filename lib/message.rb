@@ -28,6 +28,7 @@ module Combat
         got_ailment:    nil,
         add_buff:       nil,
         got_buff:       nil,
+        equiped:        nil,
         receive:        nil }
     end
 
@@ -67,7 +68,7 @@ module Combat
       message[:targets]       = targets
       message[:magic_attack]  = { magic_damage: 0,
                                   ailments:     [],
-                                  spell:        :none }
+                                  spell:        nil }
 
       message
     end
@@ -78,7 +79,7 @@ module Combat
       message[:type]    = :cast
       message[:parent]  = parent
       message[:targets] = targets
-      message[:cast]    = { spell:        :none,
+      message[:cast]    = { spell:        nil,
                             submessages:  [] }
 
       message
@@ -90,7 +91,7 @@ module Combat
       message[:type]    = :use
       message[:parent]  = parent
       message[:targets] = targets
-      message[:use]     = { item:         :none,
+      message[:use]     = { item:         nil,
                             submessages:  [] }
 
       message
@@ -99,10 +100,10 @@ module Combat
     def self.new_equip(parent,targets)
       message  = new_empty
 
-      message[:type]   = x
+      message[:type]    = :equip
       message[:parent]  = parent
-      message[:targets]   = targets
-      message[:x] = {}
+      message[:targets] = targets
+      message[:equip]   = { equiment: nil }
 
       message
     end
@@ -161,7 +162,7 @@ module Combat
                                   buff_magic_defense:       0,
                                   magic_damage:             0,
                                   ailments:                 [],
-                                  spell:                    :none }
+                                  spell:                    nil }
 
       message
     end
@@ -172,7 +173,7 @@ module Combat
       message[:type]    = :heal
       message[:parent]  = parent
       message[:targets] = targets
-      message[:heal]    = { amount: 0, source: :none }
+      message[:heal]    = { amount: 0, source: nil }
 
       message
     end
@@ -183,7 +184,7 @@ module Combat
       message[:type]      = :got_heal
       message[:parent]    = parent
       message[:targets]   = targets
-      message[:got_heal]  = { amount: 0, health: -1, source: :none }
+      message[:got_heal]  = { amount: 0, health: -1, source: nil }
 
       message
     end
@@ -194,7 +195,7 @@ module Combat
       message[:type]      = :add_mana
       message[:parent]    = parent
       message[:targets]   = targets
-      message[:add_mana]  = { amount: 0, source: :none }
+      message[:add_mana]  = { amount: 0, source: nil }
 
       message
     end
@@ -205,7 +206,7 @@ module Combat
       message[:type]          = :got_add_mana
       message[:parent]        = parent
       message[:targets]       = targets
-      message[:got_add_mana]  = { amount: 0, mana: -1, source: :none }
+      message[:got_add_mana]  = { amount: 0, mana: -1, source: nil }
 
       message
     end
@@ -254,6 +255,17 @@ module Combat
       message
     end
 
+    def self.new_equiped(parent,targets)
+      message = new_empty
+
+      message[:type]    = x
+      message[:parent]  = parent
+      message[:targets] = targets
+      message[:equiped] = { equipment: nil }
+
+      message
+    end
+
     def self.new_receive(parent,targets)
       message = new_empty
 
@@ -294,6 +306,17 @@ module Combat
       message = new_empty
 
       message[:type]    = :use_selected
+      message[:parent]  = parent
+      message[:targets] = menu_selection[:targets]
+      message[:param]   = menu_selection[:param]
+
+      message
+    end
+
+    def self.new_equip_select(parent,menu_selection)
+      message = new_empty
+
+      message[:type]    = :use_equip
       message[:parent]  = parent
       message[:targets] = menu_selection[:targets]
       message[:param]   = menu_selection[:param]
