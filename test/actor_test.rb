@@ -352,7 +352,7 @@ describe Combat::Actor do
     assert        same_effect?(ailments.last,  second_submessage[:add_ailment])
   end
 
-  ### 5.4 Use :
+  ### 5.3 Use :
   it 'uses healing items' do
     item = Combat::Item.new_health_potion
     @actor.items << item
@@ -578,14 +578,45 @@ describe Combat::Actor do
     assert_equal    buff[:turns],   buff_message[:turns]
   end
 
+  ### 5.4 Equip :
+  it 'equips equipment' do
+    equipment       = :long_sword
+    body_part       = :left_hand
+    menu_selection  = { targets:  [ :some, :targets ],
+                        param:    { equipment:  equipment,
+                                    body_part:  body_part } }
+    equip_message   = Combat::Message.new_equip_selected @actor, menu_selection
+    response        = @actor.equip equip_message
 
-  ### 5.5 Equip :
+    assert_equal  equipment, @actor.equipment[:left_hand]
 
+    assert_equal  :equiped,     response[:type]
+    assert_equal  @actor,       response[:parent]
+    assert_nil                  response[:target]
+    assert_equal  :long_sword,  response[:equiped][:equipment]
+  end
 
-  ### 5.6 Give :
+  ### 5.5 Give :
+  it 'gives items' do
+    item            = Combat::Item.new_health_potion
+    @actor.items << item
+    menu_selection  = { targets:  [ :a_target ],
+                        param:    { gift:   item,
+                                    stash:  :items } }
+    give_message    = Combat::Message.new_give_selected @actor, menu_selection
+    response        = @actor.give give_message
+    
+    assert_equal  :give,          response[:type]
+    assert_equal  @actor,         response[:parent]
+    assert_equal  [ :a_target ],  response[:targets]
 
+    refute_includes @actor.items, item
 
-  ### 5.8 Wait :
+    assert_equal  item,   response[:give][:gift]
+    assert_equal  :items, response[:give][:stash]
+  end
+
+  ### 5.6 Wait :
 
 
   ##############################################################################
@@ -891,23 +922,5 @@ describe Combat::Actor do
     assert_nil                    response[:targets]
 
     assert_equal    ailment_message[:add_ailment],  response[:got_ailment]
-  end
-
-  ### 6.7 Equip :
-  it 'equips equipment' do
-    equipment       = :long_sword
-    body_part       = :left_hand
-    menu_selection  = { targets:  [ :some, :targets ],
-                        param:    { equipment:  equipment,
-                                    body_part:  body_part } }
-    equip_message   = Combat::Message.new_equip_select @actor, menu_selection
-    response        = @actor.equip equip_message
-
-    assert_equal  equipment, @actor.equipment[:left_hand]
-
-    assert_equal  :equiped,     response[:type]
-    assert_equal  @actor,       response[:parent]
-    assert_nil                  response[:target]
-    assert_equal  :long_sword,  response[:equiped][:equipment]
   end
 end

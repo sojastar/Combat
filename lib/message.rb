@@ -111,10 +111,11 @@ module Combat
     def self.new_give(parent,targets)
       message  = new_empty
 
-      message[:type]   = x
+      message[:type]    = :give
       message[:parent]  = parent
-      message[:targets]   = targets
-      message[:x] = {}
+      message[:targets] = targets
+      message[:give]    = { gift:   nil,
+                            stash:  nil }
 
       message
     end
@@ -313,10 +314,21 @@ module Combat
       message
     end
 
-    def self.new_equip_select(parent,menu_selection)
+    def self.new_equip_selected(parent,menu_selection)
       message = new_empty
 
-      message[:type]    = :use_equip
+      message[:type]    = :equip_selected
+      message[:parent]  = parent
+      message[:targets] = menu_selection[:targets]
+      message[:param]   = menu_selection[:param]
+
+      message
+    end
+
+    def self.new_give_selected(parent,menu_selection)
+      message = new_empty
+
+      message[:type]    = :give_selected
       message[:parent]  = parent
       message[:targets] = menu_selection[:targets]
       message[:param]   = menu_selection[:param]

@@ -241,13 +241,39 @@ module Combat
       response
     end
 
-    ### 7.4 Give :
+    ### 7.4 Equip :
+    def equip(message)
+      equipment = message[:param][:equipment]
+      body_part = message[:param][:body_part]
+
+      @equipment_stash << @equipment[:body_part] unless @equipment[body_part].nil?
+
+      @equipment_stash.delete equipment
+      @equipment[body_part] = equipment
+
+      response                        = Message.new_equiped self, nil
+      response[:equiped][:equipment]  = message[:param][:equipment]
+      response
+    end
+
+    ### 7.5 Give :
     def give(message)
-      
+      gift  = message[:param][:gift]  
+      stash = message[:param][:stash]
+
+      case stash
+      when :items     then @items.delete gift
+      when :equipment then @equipment_stash.delete gift
+      end
+
+      response  = Message.new_give self, message[:targets]
+      response[:give][:gift]  = gift
+      response[:give][:stash] = stash
+      response
     end
     alias drop give
 
-    ### 7.5 Wait :
+    ### 7.6 Wait :
     def wait(message)
       
     end
@@ -419,21 +445,6 @@ module Combat
 
       response                = Message.new_got_ailment self, nil 
       response[:got_ailment]  = message[:add_ailment]
-      response
-    end
-
-    ### 8.7 Equip :
-    def equip(message)
-      equipment = message[:param][:equipment]
-      body_part = message[:param][:body_part]
-
-      @equipment_stash << @equipment[:body_part] unless @equipment[body_part].nil?
-
-      @equipment_stash.delete equipment
-      @equipment[body_part] = equipment
-
-      response                        = Message.new_equiped self, nil
-      response[:equiped][:equipment]  = message[:param][:equipment]
       response
     end
 

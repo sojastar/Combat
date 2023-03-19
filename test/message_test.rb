@@ -94,11 +94,14 @@ describe Combat::Message do
   end
 
   it 'can create an empty give message' do
-    #message  = Combat::Message.new_give :some_targets
+    message  = Combat::Message.new_give :a_parent, :some_targets
 
-    #assert_equal  x,  message[:type]
+    assert_equal  :give,          message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
 
-    #assert_equal  y, message[:x][:z]
+    assert_nil  message[:give][:gift]
+    assert_nil  message[:give][:stash]
   end
 
   it 'can create an empty wait message' do
@@ -265,12 +268,34 @@ describe Combat::Message do
     assert_equal  :a_spell,       message[:param] 
   end
 
-  it "can create an 'cast_selected' message" do
+  it "can create an 'use_selected' message" do
     message = Combat::Message.new_use_selected( :a_parent,
                                                 { targets:  :some_targets,
                                                   param:    :an_item } )
 
     assert_equal  :use_selected,  message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+    assert_equal  :an_item,       message[:param] 
+  end
+
+  it "can create an 'equip_selected' message" do
+    message = Combat::Message.new_equip_selected( :a_parent,
+                                                  { targets:  :some_targets,
+                                                    param:    :an_item } )
+
+    assert_equal  :equip_selected, message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+    assert_equal  :an_item,       message[:param] 
+  end
+
+  it "can create an 'give_selected' message" do
+    message = Combat::Message.new_give_selected(  :a_parent,
+                                                  { targets:  :some_targets,
+                                                    param:    :an_item } )
+
+    assert_equal  :give_selected, message[:type]
     assert_equal  :a_parent,      message[:parent]
     assert_equal  :some_targets,  message[:targets]
     assert_equal  :an_item,       message[:param] 
