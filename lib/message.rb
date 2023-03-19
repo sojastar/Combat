@@ -258,7 +258,7 @@ module Combat
     def self.new_equiped(parent,targets)
       message = new_empty
 
-      message[:type]    = x
+      message[:type]    = :equiped
       message[:parent]  = parent
       message[:targets] = targets
       message[:equiped] = { equipment: nil }

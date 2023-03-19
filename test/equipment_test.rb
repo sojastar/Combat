@@ -6,6 +6,10 @@ describe Combat::Equipment do
     assert_equal  'Long Sword', Combat::Equipment.name(:long_sword)
   end
 
+  it 'can return the body parts a piece can attach to' do
+    assert_equal  [ :left_hand, :right_hand ], Combat::Equipment.attach_to(:long_sword)
+  end
+
   it 'can have an attack value or not' do
     assert            Combat::Equipment.raise_attack?(:long_sword)
     assert_equal  2,  Combat::Equipment.attack_value(:long_sword)

@@ -4,6 +4,10 @@ module Combat
       PIECES[piece][:name]
     end
 
+    def self.attach_to(piece)
+      PIECES[piece][:body_part]
+    end
+
     def self.raise_attack?(piece)
       PIECES[piece][:effects].any? do |effect|
         effect[:on] == :attack

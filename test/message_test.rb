@@ -225,6 +225,16 @@ describe Combat::Message do
     assert_nil  message[:got_ailment][:ailment]
   end
 
+  it 'can create an empty equiped message' do
+    message = Combat::Message.new_equiped :a_parent, :some_targets
+
+    assert_equal  :equiped,       message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
+
+    assert_nil  message[:equiped][:equipment]
+  end
+
   it 'can create a receive message' do
     #message  = Combat::Message.new_receive :some_targets
 

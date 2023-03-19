@@ -15,7 +15,7 @@ module Combat
                 :health, :max_health,
                 :mana, :max_mana,
                 :strength, :intelligence,
-                :equipment,
+                :equipment, :equipment_stash,
                 :items,
                 :spells,
                 :active_buffs, :active_ailments,
@@ -39,6 +39,7 @@ module Combat
       @intelligence     = params[:intelligence]
 
       @equipment        = params[:equipment]
+      @equipment_stash  = []
 
       @items            = params[:items].map { |item_type| Combat::Item.new item_type }
       
@@ -184,17 +185,17 @@ module Combat
     def attack(message)
       strength_damage   = rand(0..@strength)
 
-      weapons       = @equipment.values.select { |piece| Equipment.raise_attack? piece }
+      weapons       = @equipment.values.compact.select { |piece| Equipment.raise_attack? piece }
       weapon_damage = weapons.inject(0) { |damage,weapon|
         damage + Equipment.attack_value(weapon)
       }
 
-      magic_weapons = @equipment.values.select { |piece| Equipment.raise_magic_attack? piece }
+      magic_weapons = @equipment.values.compact.select { |piece| Equipment.raise_magic_attack? piece }
       magic_damage  = magic_weapons.inject(0) { |damage,weapon|
         damage + Equipment.magic_attack_value(weapon)
       }
 
-      ailments  =  @equipment.values.select { |piece| Equipment.has_ailment_effect? piece }
+      ailments  =  @equipment.values.compact.select { |piece| Equipment.has_ailment_effect? piece }
                              .map { |piece|
                                 Equipment.ailment_effects(piece).each { |ailment|
                                   active_effect_from piece, ailment 
@@ -240,18 +241,13 @@ module Combat
       response
     end
 
-    ### 7.4 Equip :
-    def equip(message)
-      equipment     = message[:param] 
-    end
-
-    ### 7.5 Give :
+    ### 7.4 Give :
     def give(message)
       
     end
     alias drop give
 
-    ### 7.8 Wait :
+    ### 7.5 Wait :
     def wait(message)
       
     end
@@ -268,7 +264,7 @@ module Combat
       attack = message[:attack]
 
       ### Physical damage :
-      equipment_defense = @equipment.values.filter { |piece|
+      equipment_defense = @equipment.values.compact.filter { |piece|
                             Equipment.raise_defense? piece
                           }
                           .inject(0) { |defense,piece|
@@ -289,7 +285,7 @@ module Combat
                           buff_defense ].max
 
       ### Magic damage :
-      equipment_magic_defense = @equipment.values.filter { |piece|
+      equipment_magic_defense = @equipment.values.compact.filter { |piece|
                                   Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|
@@ -337,7 +333,7 @@ module Combat
       attack = message[:magic_attack]
 
       ### Magic damage :
-      equipment_magic_defense = @equipment.values.filter { |piece|
+      equipment_magic_defense = @equipment.values.compact.filter { |piece|
                                   Equipment.raise_magic_defense? piece
                                 }
                                 .inject(0) { |defense,piece|
@@ -423,6 +419,21 @@ module Combat
 
       response                = Message.new_got_ailment self, nil 
       response[:got_ailment]  = message[:add_ailment]
+      response
+    end
+
+    ### 8.7 Equip :
+    def equip(message)
+      equipment = message[:param][:equipment]
+      body_part = message[:param][:body_part]
+
+      @equipment_stash << @equipment[:body_part] unless @equipment[body_part].nil?
+
+      @equipment_stash.delete equipment
+      @equipment[body_part] = equipment
+
+      response                        = Message.new_equiped self, nil
+      response[:equiped][:equipment]  = message[:param][:equipment]
       response
     end
 
