@@ -35,6 +35,7 @@ module Combat
       when :use
         message[:submessages].each { |submessage| run_actor actor, submessage }
 
+      when :give_selected   then actor.give     message
       when :wait
       end
     end

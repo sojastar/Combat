@@ -448,7 +448,20 @@ module Combat
       response
     end
 
-    def receive(item)
+    ### 8.7 Receive :
+    def receive(message)
+      gift  = message[:give][:gift]  
+      stash = message[:give][:stash]
+
+      case stash
+      when :items     then @items << gift
+      when :equipment then @equipment_stash << gift
+      end
+
+      response  = Message.new_received self, nil
+      response[:received][:gift]  = gift
+      response[:received][:stash] = stash
+      response
     end
   end
 end

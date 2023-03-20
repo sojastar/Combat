@@ -239,11 +239,14 @@ describe Combat::Message do
   end
 
   it 'can create a receive message' do
-    #message  = Combat::Message.new_receive :some_targets
+    message  = Combat::Message.new_received :a_parent, :some_targets
 
-    #assert_equal  x,  message[:type]
+    assert_equal  :received,      message[:type]
+    assert_equal  :a_parent,      message[:parent]
+    assert_equal  :some_targets,  message[:targets]
 
-    #assert_equal  y, message[:x][:z]
+    assert_nil  message[:received][:gift]
+    assert_nil  message[:received][:stash]
   end
 
   it "can create an 'attack_selected' message" do

@@ -616,6 +616,25 @@ describe Combat::Actor do
     assert_equal  :items, response[:give][:stash]
   end
 
+  it 'gives equipment' do
+    equipment = :long_sword
+    @actor.equipment_stash << equipment
+    menu_selection  = { targets:  [ :a_target ],
+                        param:    { gift:   equipment,
+                                    stash:  :equipment } }
+    give_message    = Combat::Message.new_give_selected @actor, menu_selection
+    response        = @actor.give give_message
+    
+    assert_equal  :give,          response[:type]
+    assert_equal  @actor,         response[:parent]
+    assert_equal  [ :a_target ],  response[:targets]
+
+    refute_includes @actor.equipment_stash, equipment
+
+    assert_equal  equipment,  response[:give][:gift]
+    assert_equal  :equipment, response[:give][:stash]
+  end
+
   ### 5.6 Wait :
 
 
@@ -922,5 +941,36 @@ describe Combat::Actor do
     assert_nil                    response[:targets]
 
     assert_equal    ailment_message[:add_ailment],  response[:got_ailment]
+  end
+
+  ### 6.7 Receive :
+  it 'receives items' do
+    item                        = Combat::Item.new_health_potion
+    give_message                = Combat::Message.new_give :a_parent, @actor
+    give_message[:give][:gift]  = item
+    give_message[:give][:stash] = :items
+    receive_response            = @actor.receive give_message
+
+    assert_equal  :received,  receive_response[:type]
+    assert_equal  @actor,     receive_response[:parent]
+    assert_nil                receive_response[:target]
+
+    assert_equal  item,   receive_response[:received][:gift]
+    assert_equal  :items, receive_response[:received][:stash]
+  end
+
+  it 'receives equipment' do
+    equipment                   = :long_sword
+    give_message                = Combat::Message.new_give :a_parent, @actor
+    give_message[:give][:gift]  = equipment
+    give_message[:give][:stash] = :equipment
+    receive_response            = @actor.receive give_message
+
+    assert_equal  :received,  receive_response[:type]
+    assert_equal  @actor,     receive_response[:parent]
+    assert_nil                receive_response[:target]
+
+    assert_equal  equipment,  receive_response[:received][:gift]
+    assert_equal  :equipment, receive_response[:received][:stash]
   end
 end

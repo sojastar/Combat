@@ -29,7 +29,7 @@ module Combat
         add_buff:       nil,
         got_buff:       nil,
         equiped:        nil,
-        receive:        nil }
+        received:       nil }
     end
 
 
@@ -267,13 +267,14 @@ module Combat
       message
     end
 
-    def self.new_receive(parent,targets)
+    def self.new_received(parent,targets)
       message = new_empty
 
-      message[:type]    = x
-      message[:parent]  = parent
-      message[:targets]  = targets
-      message[:x] = {}
+      message[:type]      = :received
+      message[:parent]    = parent
+      message[:targets]   = targets
+      message[:received]  = { gift:   nil,
+                              stash:  nil }
 
       message
     end
