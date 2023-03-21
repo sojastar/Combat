@@ -123,10 +123,19 @@ module Combat
     def self.new_wait(parent,targets)
       message  = new_empty
 
+      message[:type]    = :wait
       message[:parent]  = parent
-      message[:type]   = x
-      message[:targets]   = targets
-      message[:x] = {}
+      message[:targets] = targets
+
+      message
+    end
+
+    def self.new_waited(parent,targets)
+      message  = new_empty
+
+      message[:type]    = :waited
+      message[:parent]  = parent
+      message[:targets] = targets
 
       message
     end
@@ -330,6 +339,17 @@ module Combat
       message = new_empty
 
       message[:type]    = :give_selected
+      message[:parent]  = parent
+      message[:targets] = menu_selection[:targets]
+      message[:param]   = menu_selection[:param]
+
+      message
+    end
+
+    def self.new_wait_selected(parent,menu_selection)
+      message = new_empty
+
+      message[:type]    = :wait_selected
       message[:parent]  = parent
       message[:targets] = menu_selection[:targets]
       message[:param]   = menu_selection[:param]

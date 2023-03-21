@@ -636,6 +636,14 @@ describe Combat::Actor do
   end
 
   ### 5.6 Wait :
+  it 'waits' do
+    wait_message  = Combat::Message.new_wait :a_parent, [ :useless_target ]
+    response = @actor.wait wait_message
+
+    assert_equal  :waited,  response[:type]
+    assert_equal  @actor,   response[:parent]
+    assert_nil              response[:target]
+  end
 
 
   ##############################################################################

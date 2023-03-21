@@ -104,12 +104,12 @@ describe Combat::Message do
     assert_nil  message[:give][:stash]
   end
 
-  it 'can create an empty wait message' do
-    #message  = Combat::Message.new_wait :some_targets
+  it 'can create an empty waited message' do
+    message  = Combat::Message.new_waited :a_parent, :some_targets
 
-    #assert_equal  x,  message[:type]
-
-    #assert_equal  y, message[:x][:z]
+    assert_equal  :waited,        message[:type]
+    assert_equal  :a_parent,      message[:parent] 
+    assert_equal  :some_targets,  message[:targets]
   end
 
   it 'can create an empty got_hit message' do

@@ -275,7 +275,7 @@ module Combat
 
     ### 7.6 Wait :
     def wait(message)
-      
+      Message.new_waited self, nil 
     end
     alias pass wait
 

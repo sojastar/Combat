@@ -24,19 +24,20 @@ module Combat
 
     def run_actor(actor,message)
       case message[:type]
-      when :attack_selected then actor.attack   message
-      when :attack          then actor.got_hit  message
-      when :cast_selected   then actor.cast     message
+      when :attack_selected       then actor.attack         message
+      when :attack                then actor.got_hit        message
+      when :cast_selected         then actor.cast           message
       when :cast
         message[:submessages].each { |submessage| run_actor actor, submessage }
 
-      when :magic_attack    then actor.got_magic_hit  message
-      when :use_selected    then actor.use      message
+      when :magic_attack          then  actor.got_magic_hit message
+      when :use_selected          then  actor.use           message
       when :use
         message[:submessages].each { |submessage| run_actor actor, submessage }
 
-      when :give_selected   then actor.give     message
-      when :wait
+      when :give_selected         then  actor.give          message
+      when :wait_selected, :wait  then  actor.wait          message
+      else                              actor.wait          message
       end
     end
 
