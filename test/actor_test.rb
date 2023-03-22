@@ -277,8 +277,7 @@ describe Combat::Actor do
   it 'casts buff spells' do
     spell_id        = :raise_defense
     spell           = Combat::Spell::SPELLS[spell_id]
-    ailment         = @actor.active_effect_from spell_id,
-                                                spell[:effects].first
+    buff            = { source: spell_id, effect: spell[:effects].first }
 
     menu_selection  = { targets: [ :some, :targets ], param: spell_id }
     cast_message    = Combat::Message.new_cast_selected @actor, menu_selection   
@@ -295,7 +294,7 @@ describe Combat::Actor do
     assert_equal  :add_buff,                submessage[:type]
     assert_equal  @actor,                   submessage[:parent]
     assert_equal  menu_selection[:targets], submessage[:targets]
-    assert        same_effect?(ailment, submessage[:add_buff])
+    assert        same_effect?(buff, submessage[:add_buff])
   end
 
   it 'casts ailment spells' do
@@ -562,12 +561,10 @@ describe Combat::Actor do
     assert_equal  :add_buff,  response[:use][:submessages].first[:type]
 
     buff_message  = response[:use][:submessages].first[:add_buff]
-    buff          = Combat::Item::ITEMS[item.type][:effects].first
+    buff          = { source: item.type,
+                      effect: Combat::Item::ITEMS[item.type][:effects].first }
 
-    assert_equal    item.type,      buff_message[:source]
-    assert_equal    buff[:on],      buff_message[:on]
-    assert_includes buff[:value],   buff_message[:value]
-    assert_equal    buff[:turns],   buff_message[:turns]
+    assert_equal  buff, buff_message
   end
 
   ### 5.4 Equip :
@@ -906,21 +903,17 @@ describe Combat::Actor do
   ### 6.5 Add Buff :
   it 'gets buffs' do
     buff_message            = Combat::Message.new_add_buff :a_parent, [ @actor ]
-    spell                   = Combat::Spell::SPELLS[:raise_attack]
+    spell_id                = :raise_attack
+    spell                   = Combat::Spell::SPELLS[spell_id]
     buff                    = spell[:effects].first
-    buff_message[:add_buff] = { name:   spell[:name],
-                                on:     buff[:on],
-                                value:  rand(buff[:value]),
-                                turns:  buff[:turns] }
+    buff_message[:add_buff] = { source: spell_id, effect: buff }
     response                = @actor.add_buff buff_message
-     
-    assert_includes @actor.active_buffs, buff_message[:add_buff]  
 
     assert_equal    :got_buff,  response[:type]
     assert_equal    @actor,     response[:parent]
     assert_nil                  response[:targets]
-
-    assert_equal    buff_message[:add_buff],  response[:got_buff]
+     
+    assert_includes @actor.active_buffs, response[:got_buff]  
   end
 
   ### 6.6 Add Ailments :
@@ -929,20 +922,14 @@ describe Combat::Actor do
     spell_id                      = :poison
     spell                         = Combat::Spell::SPELLS[spell_id]
     ailment                       = spell[:effects].first
-    #ailment_message[:add_ailment] = { name:   spell[:name],
-    #                                  on:     ailment[:on],
-    #                                  value:  rand(ailment[:value]),
-    #                                  turns:  ailment[:turns] }
     ailment_message[:add_ailment] = { source: spell_id, effect: ailment }
     response                      = @actor.add_ailment ailment_message
-     
-    #assert_includes @actor.active_ailments, ailment_message[:add_ailment]  
 
-    #assert_equal    :got_ailment, response[:type]
-    #assert_equal    @actor,       response[:parent]
-    #assert_nil                    response[:targets]
-
-    #assert_equal    ailment_message[:add_ailment],  response[:got_ailment]
+    assert_equal    :got_ailment, response[:type]
+    assert_equal    @actor,       response[:parent]
+    assert_nil                    response[:targets]
+    
+    assert_includes @actor.active_ailments, response[:got_ailment]  
   end
 
   ### 6.7 Receive :

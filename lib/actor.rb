@@ -103,12 +103,12 @@ module Combat
 
         when :buff
           submessage            = Message.new_add_buff self, targets
-          submessage[:add_buff] = active_effect_from source, effect
+          #submessage[:add_buff] = active_effect_from source, effect
+          submessage[:add_buff] = { source: source, effect: effect }
           submessage
 
         when :ailment
           submessage                = Message.new_add_ailment self, targets
-          #submessage[:add_ailment]  = active_effect_from source, effect
           submessage[:add_ailment]  = { source: source, effect: effect }
           submessage
         end
@@ -435,10 +435,13 @@ module Combat
 
     ### 8.5 Add Buff :
     def add_buff(message)
-      push_effect_to message[:add_buff], @active_buffs
+      new_buff  = active_effect_from  message[:add_buff][:source],
+                                      message[:add_buff][:effect]
+      push_effect_to new_buff, @active_buffs
+      #push_effect_to message[:add_buff], @active_buffs
 
       response            = Message.new_got_buff self, nil
-      response[:got_buff] = message[:add_buff]
+      response[:got_buff] = new_buff
       response
     end
 
