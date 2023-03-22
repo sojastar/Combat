@@ -222,7 +222,8 @@ describe Combat::Actor do
     assert_equal    1,                    attack[:weapon_damage]
     assert_empty                          attack[:magic_weapons]
     assert_equal    0,                    attack[:magic_damage]
-    assert_equal    [ Combat::Equipment::PIECES[:poisoned_dagger][:effects].last ],
+    assert_equal    [ { source: :poisoned_dagger,
+                        effect: Combat::Equipment::PIECES[:poisoned_dagger][:effects].last } ],
                                           attack[:ailments]
   end
 
@@ -785,7 +786,7 @@ describe Combat::Actor do
                                 weapon_damage:    1,
                                 magic_weapons:    [],
                                 magic_damage:     0,
-                                ailments:         [ @actor.active_effect_from(weapon_id, ailment_effect) ] }
+                                ailments:         [ { source: weapon_id, effect: ailment_effect } ] }
     attack_message[:attack] = attack
     response                = @actor.got_hit attack_message
 

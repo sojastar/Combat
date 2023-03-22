@@ -196,12 +196,10 @@ module Combat
       }
 
       ailments  =  @equipment.values.compact.select { |piece| Equipment.has_ailment_effect? piece }
-                             .map { |piece|
-                                Equipment.ailment_effects(piece).each { |ailment|
-                                  active_effect_from piece, ailment 
-                                }
-                             }
-                             .flatten
+                  .map { |piece| 
+                    Equipment.ailment_effects(piece).map { |effect| { source: piece, effect: effect } }
+                  } 
+                  .flatten
 
       response            = Message.new_attack self, message[:targets]
       response[:attack]   = { strength_damage:  strength_damage,
@@ -331,7 +329,11 @@ module Combat
                         buff_magic_defense ].max
 
       ### Ailments :
-      attack[:ailments].each { |ailment| push_effect_to ailment, @active_ailments }
+      new_ailments  = attack[:ailments].map do |ailment|
+                        active_effect_from ailment[:source], ailment[:effect]
+                      end
+
+      new_ailments.each { |ailment| push_effect_to ailment, @active_ailments }
 
       ### Final damage calculation :
       total_damage  = physical_damage + magic_damage
@@ -347,7 +349,7 @@ module Combat
                               equipment_magic_defense:  equipment_magic_defense,
                               buff_magic_defense:       buff_magic_defense,
                               magic_damage:             magic_damage,
-                              ailments:                 attack[:ailments],
+                              ailments:                 new_ailments,
                               total_damage:             total_damage }
       response
     end
