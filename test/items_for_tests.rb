@@ -1,0 +1,30 @@
+module Combat
+  class Item
+    ITEMS = { health_potion:      { name:     'Health Potion',
+                                    uses:     1,
+                                    effects:  [ { type: :action, on: :heal, value: 9..10 } ] },
+              mana_potion:        { name:     'Mana Potion',
+                                    uses:     1,
+                                    effects:  [ { type: :action, on: :add_mana, value: 4..5 } ] },
+              ambroisie:          { name:     'Ambroisie',
+                                    uses:     1,
+                                    effects:  [ { type: :action, on: :heal, value: 9..10 },
+                                                { type: :action, on: :add_mana, value: 4..5 } ] },
+              blowpipe:           { name:     'Blowpipe',
+                                    uses:     3,
+                                    effects:  [ { type: :action, on: :attack, value: 5..7 } ] },
+              poisoned_blowpipe:  { name:     'Blowpipe',
+                                    uses:     3,
+                                    effects:  [ { type: :action, on: :attack, value: 5..7 },
+                                                { type: :ailment, name: 'poison', on: :health, value: 1..3, turns: 3 } ] },
+              fire_wand:          { name:     'Fire Wand',
+                                    uses:     3,
+                                    effects:  [ { type: :action, on: :magic_attack, value: 5..10 } ] },
+              poison_wand:        { name:     'Poison Wand',
+                                    uses:     3,
+                                    effects:  [ { type: :ailment, name: 'poison', on: :health, value: 1..3, turns: 3 } ] },
+              attack_potion:      { name:     'Berserk Jerky',
+                                    uses:     1,
+                                    effects:  [ { type: :buff, name: 'berserk', on: :attack, value: 3..6, turns: 3 } ] } }
+  end
+end
