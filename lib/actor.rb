@@ -108,7 +108,8 @@ module Combat
 
         when :ailment
           submessage                = Message.new_add_ailment self, targets
-          submessage[:add_ailment]  = active_effect_from source, effect
+          #submessage[:add_ailment]  = active_effect_from source, effect
+          submessage[:add_ailment]  = { source: source, effect: effect }
           submessage
         end
       end
@@ -443,10 +444,12 @@ module Combat
 
     ### 8.6 Add Ailment :
     def add_ailment(message)
-      push_effect_to message[:add_ailment], @active_ailments
+      new_ailment = active_effect_from  message[:add_ailment][:source],
+                                        message[:add_ailment][:effect]
+      push_effect_to new_ailment, @active_ailments
 
       response                = Message.new_got_ailment self, nil 
-      response[:got_ailment]  = message[:add_ailment]
+      response[:got_ailment]  = new_ailment
       response
     end
 
