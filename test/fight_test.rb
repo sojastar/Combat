@@ -85,8 +85,11 @@ describe Combat::Fight do
   ### 3.1. ATTACKS : ###########################################################
   it 'produces an attack message/response when the actor selects attack' do
     # Player 1 attacking :
-    evil_sword                      = Combat::Equipment::PIECES[:evil_sword]
-    @player1.equipment[:left_hand]  = :evil_sword  # a weapon that does it all
+    equipment_id                    = :evil_sword   # a weapon that does it all
+    equipment                       = Combat::Equipment::PIECES[equipment_id]
+    ailment                         = { source: equipment_id,
+                                        effect: equipment[:effects][2] }
+    @player1.equipment[:left_hand]  = equipment_id
 
     selection = Combat::Message.new_attack_selected @actor,
                                                     { targets:  [ @enemy1 ],
@@ -98,13 +101,12 @@ describe Combat::Fight do
 
     attack  = attack_response[:attack]
 
-    assert_includes 0..@player1.strength,             attack[:strength_damage] 
-    assert_equal    [ :evil_sword ],                  attack[:weapons]
-    assert_equal    evil_sword[:effects][0][:value],  attack[:weapon_damage]
-    assert_equal    [ :evil_sword ],                  attack[:magic_weapons]
-    assert_equal    evil_sword[:effects][1][:value],  attack[:magic_damage]
-    assert_equal    @player1.active_effect_from( :evil_sword, evil_sword[:effects][2] ),
-                                                      attack[:ailments]
+    assert_includes 0..@player1.strength,           attack[:strength_damage] 
+    assert_equal    [ equipment_id ],               attack[:weapons]
+    assert_equal    equipment[:effects][0][:value], attack[:weapon_damage]
+    assert_equal    [ equipment_id ],               attack[:magic_weapons]
+    assert_equal    equipment[:effects][1][:value], attack[:magic_damage]
+    assert_equal    [ ailment ],                    attack[:ailments]
   end
 
   ### 3.2 CASTING SPELLS : #####################################################
@@ -122,42 +124,46 @@ describe Combat::Fight do
   ##############################################################################
 
   ### 4.1. GET HIT : ###########################################################
-  #it 'runs hits (i.e. received damage)' do
-  #  # Player 1 attacking :
-  #  attack_equipment                = :evil_sword
-  #  @player1.equipment[:left_hand]  = attack_equipment
-  #  menu_choice = Combat::Message.new_attack_selected @actor,
-  #                                                    { targets:  [ @enemy1 ],
-  #                                                      param:    nil }
-  #  attack_response = @fight.run_actor @player1, menu_choice
+  it 'runs hits (i.e. received damage)' do
+    # Player 1 attacking :
+    attack_equipment                = :evil_sword
+    @player1.equipment[:left_hand]  = attack_equipment
+    menu_choice = Combat::Message.new_attack_selected @actor,
+                                                      { targets:  [ @enemy1 ],
+                                                        param:    nil }
+    attack_response = @fight.run_actor @player1, menu_choice
 
-  #  # Enemy 1 getting hit :
-  #  defense_equipment         = :magic_helm
-  #  @enemy1.equipment[:head]  = defense_equipment
-  #  hit_response    = @fight.run_actor @enemy1, attack_response
+    # Enemy 1 getting hit :
+    defense_equipment         = :magic_helm
+    @enemy1.equipment[:head]  = defense_equipment
+    hit_response    = @fight.run_actor @enemy1, attack_response
 
-  #  assert_equal  :got_hit, hit_response[:type]
-  #  assert_equal  @enemy1,  hit_response[:parent]
-  #  assert_nil              hit_response[:targets]
+    assert_equal  :got_hit, hit_response[:type]
+    assert_equal  @enemy1,  hit_response[:parent]
+    assert_nil              hit_response[:targets]
 
-  #  hit     = hit_response[:got_hit]
-  #  attack  = attack_response[:attack]
-  #  #pp hit
-  #  assert_equal  attack_response[:attack], hit[:hit_attack]
-  #  assert_equal  Combat::Equipment::PIECES[defense_equipment][:effects][0][:value],
-  #                                          hit[:equipment_defense]
-  #  assert_equal  0,                        hit[:buff_defense]
-  #  assert_equal  attack[:strength_damage]  +
-  #                attack[:weapon_damage]    -
-  #                hit[:equipment_defense]   -
-  #                hit[:buff_defense],       hit[:physical_damage]
-  #  assert_equal  Combat::Equipment::PIECES[defense_equipment][:effects][1][:value],
-  #                                          hit[:equipment_magic_defense]
-  #  assert_equal  0,                        hit[:buff_magic_defense]
-  #  assert_equal  0,                        hit[:magic_damage]
-  #  assert_empty                            hit[:ailments]
-  #  assert_equal  hit[:physical_damage] +
-  #                hit[:magic_damage],       hit[:total_damage]
-  #end
+    hit     = hit_response[:got_hit]
+    attack  = attack_response[:attack]
+
+    assert_equal  attack_response[:attack], hit[:hit_attack]
+    assert_equal  Combat::Equipment::PIECES[defense_equipment][:effects][0][:value],
+                                            hit[:equipment_defense]
+    assert_equal  0,                        hit[:buff_defense]
+    assert_equal  attack[:strength_damage]  +
+                  attack[:weapon_damage]    -
+                  hit[:equipment_defense]   -
+                  hit[:buff_defense],       hit[:physical_damage]
+    assert_equal  Combat::Equipment::PIECES[defense_equipment][:effects][1][:value],
+                                            hit[:equipment_magic_defense]
+    assert_equal  0,                        hit[:buff_magic_defense]
+    assert_equal  attack[:magic_damage]         -
+                  hit[:equipment_magic_defense] -
+                  hit[:buff_magic_defense], hit[:magic_damage]
+    assert        same_effect?( @enemy1.active_effect_from( attack[:ailments][0][:source],
+                                                            attack[:ailments][0][:effect] ),
+                                hit[:ailments][0] )
+    assert_equal  hit[:physical_damage] +
+                  hit[:magic_damage],       hit[:total_damage]
+  end
 end
 
