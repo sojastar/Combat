@@ -76,6 +76,7 @@ module Combat
                                     weapon_damage:    rand(effect[:value]),
                                     magic_weapons:    [],
                                     magic_damage:     0,
+                                    buff_damage:      0,
                                     ailments:         [] }
 
             submessage
@@ -103,7 +104,6 @@ module Combat
 
         when :buff
           submessage            = Message.new_add_buff self, targets
-          #submessage[:add_buff] = active_effect_from source, effect
           submessage[:add_buff] = { source: source, effect: effect }
           submessage
 
@@ -137,6 +137,10 @@ module Combat
           same_on_effect[:turns] = effect[:turns]
         end
       end
+    end
+
+    def buffs_total_value(on)
+      @active_buffs.inject(0) { |total,buff| total + buff[:value] }
     end
 
     def resolve_ailements
@@ -196,6 +200,8 @@ module Combat
         damage + Equipment.magic_attack_value(weapon)
       }
 
+      buff_damage = buffs_total_value :attack
+
       ailments  =  @equipment.values.compact.select { |piece| Equipment.has_ailment_effect? piece }
                   .map { |piece| 
                     Equipment.ailment_effects(piece).map { |effect| { source: piece, effect: effect } }
@@ -208,6 +214,7 @@ module Combat
                               weapon_damage:    weapon_damage,
                               magic_weapons:    magic_weapons,
                               magic_damage:     magic_damage,
+                              buff_damage:      buff_damage,            
                               ailments:         ailments }
       response
     end

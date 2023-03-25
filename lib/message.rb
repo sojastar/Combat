@@ -55,6 +55,7 @@ module Combat
                             weapon_damage:    0,
                             magic_weapons:    [],
                             magic_damage:     0,
+                            buff_damage:      0,
                             ailments:         [] }
 
       message

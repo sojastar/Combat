@@ -159,71 +159,52 @@ describe Combat::Actor do
     assert_equal stronger_ailment[:turns],  @actor.active_ailments[1][:turns]
   end
 
+  it 'gets the total value of buffs on the same characteristic' do
+    attack_buff1  = { source: 'War Cry',        on: :attack, value: 2, turns: 3 }
+    attack_buff2  = { source: 'Great War Cry',  on: :attack, value: 4, turns: 3 }
+    @actor.active_buffs << attack_buff1 << attack_buff2
+
+    assert_equal  attack_buff1[:value] + 
+                  attack_buff2[:value], @actor.buffs_total_value(:attack)
+  end
+
 
   ##############################################################################
   # 5. ACTIONS :
   ##############################################################################
 
   ### 5.1 Attack :
-  it 'attacks with a normal weapon' do
-    @actor.equipment[:right_hand] = :long_sword
+  it 'attacks' do
+    # Giving the actor the weapon that has the most possible effects :
+    # - attack
+    # - magic attack
+    # - ailments
+    equipment                     = :evil_sword
+    @actor.equipment[:right_hand] = equipment 
+    attack_buff  = { source: 'War Cry', on: :attack, value: 2, turns: 3 }
+    @actor.active_buffs << attack_buff
+
     menu_selection  = { targets: [ :some, :targets ] }
     attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
     response        = @actor.attack attack_message
 
+    # Tests :
     assert_equal  :attack,              response[:type]
     assert_equal  @actor,               response[:parent]
     assert_equal  [ :some, :targets ],  response[:targets]
 
     attack  = response[:attack]
 
-    assert_includes 0..@actor.strength, attack[:strength_damage] 
-    assert_equal    [ :long_sword ],    attack[:weapons]
-    assert_equal    2,                  attack[:weapon_damage]
-    assert_empty                        attack[:magic_weapons]
-    assert_equal    0,                  attack[:magic_damage]
-    assert_empty                        attack[:ailments]
-  end
-
-  it 'attacks with magic weapons' do
-    @actor.equipment[:right_hand] = :magic_sword
-    menu_selection  = { targets: [ :some, :targets ] }
-    attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
-    response        = @actor.attack attack_message
-
-    assert_equal  :attack,              response[:type]
-    assert_equal  @actor,               response[:parent]
-    assert_equal  [ :some, :targets ],  response[:targets]
-
-    attack  = response[:attack]
-
-    assert_includes 0..@actor.strength, attack[:strength_damage] 
-    assert_equal    [ :magic_sword ],   attack[:weapons]
-    assert_equal    1,                  attack[:weapon_damage]
-    assert_equal    [ :magic_sword ],   attack[:magic_weapons]
-    assert_equal    1,                  attack[:magic_damage]
-    assert_empty                        attack[:ailments]
-  end
-
-  it 'attacks with weapons inflicting ailments' do
-    @actor.equipment[:right_hand] = :poisoned_dagger
-    menu_selection  = { targets: [ :some, :targets ] }
-    attack_message  = Combat::Message.new_attack_selected @actor, menu_selection
-    response        = @actor.attack attack_message
-
-    assert_equal  :attack,              response[:type]
-    assert_equal  @actor,               response[:parent]
-    assert_equal  [ :some, :targets ],  response[:targets]
-
-    attack    = response[:attack]
-
-    assert_includes 0..@actor.strength, attack[:strength_damage] 
-    assert_equal    [ :poisoned_dagger ], attack[:weapons]
-    assert_equal    1,                    attack[:weapon_damage]
-    assert_empty                          attack[:magic_weapons]
-    assert_equal    0,                    attack[:magic_damage]
-    assert_equal    [ { source: :poisoned_dagger,
-                        effect: Combat::Equipment::PIECES[:poisoned_dagger][:effects].last } ],
+    assert_includes 0..@actor.strength,   attack[:strength_damage] 
+    assert_equal    [ :evil_sword ],      attack[:weapons]
+    assert_equal    Combat::Equipment::PIECES[equipment][:effects][0][:value],
+                                          attack[:weapon_damage]
+    assert_equal    [ :evil_sword ],      attack[:magic_weapons]
+    assert_equal    Combat::Equipment::PIECES[equipment][:effects][1][:value],
+                                          attack[:magic_damage]
+    assert_equal    attack_buff[:value],  attack[:buff_damage]
+    assert_equal    [ { source: equipment,
+                        effect: Combat::Equipment::PIECES[equipment][:effects][2] } ],
                                           attack[:ailments]
   end
 
