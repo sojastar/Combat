@@ -42,11 +42,12 @@ describe Combat::Message do
     assert_equal  :some_targets,  message[:targets]
 
     assert_equal  0,  message[:attack][:strength_damage]
+    assert_equal  0,  message[:attack][:attack_buff_damage]
     assert_equal [],  message[:attack][:weapons]        
     assert_equal  0,  message[:attack][:weapon_damage]  
     assert_equal [],  message[:attack][:magic_weapons]  
     assert_equal  0,  message[:attack][:magic_damage]   
-    assert_equal  0,  message[:attack][:buff_damage]
+    assert_equal  0,  message[:attack][:magic_attack_buff_damage]
     assert_equal [],  message[:attack][:ailments]       
   end
 

@@ -70,22 +70,26 @@ module Combat
         when :action
           case effect[:on]
           when :attack
+            attack_buff_damage  = buffs_total_value :attack
             submessage          = Message.new_attack self, targets
-            submessage[:attack] = { strength_damage:  0,
-                                    weapons:          [ source ],
-                                    weapon_damage:    rand(effect[:value]),
-                                    magic_weapons:    [],
-                                    magic_damage:     0,
-                                    buff_damage:      0,
-                                    ailments:         [] }
+            submessage[:attack] = { strength_damage:          0,
+                                    attack_buff_damage:       attack_buff_damage,
+                                    weapons:                  [ source ],
+                                    weapon_damage:            rand(effect[:value]),
+                                    magic_weapons:            [],
+                                    magic_damage:             0,
+                                    magic_attack_buff_damage: 0,
+                                    ailments:                 [] }
 
             submessage
 
           when :magic_attack
+            magic_attack_buff_damage  = buffs_total_value :magic_attack
             submessage                = Message.new_magic_attack self, targets
-            submessage[:magic_attack] = { magic_damage: rand(effect[:value]),
-                                          ailments:     [],
-                                          spell:        source }
+            submessage[:magic_attack] = { magic_damage:             rand(effect[:value]),
+                                          magic_attack_buff_damage: magic_attack_buff_damage,
+                                          ailments:                 [],
+                                          spell:                    source }
             submessage
 
           when :heal
@@ -140,7 +144,9 @@ module Combat
     end
 
     def buffs_total_value(on)
-      @active_buffs.inject(0) { |total,buff| total + buff[:value] }
+      @active_buffs
+      .select { |buff| buff[:on] == on }
+      .inject(0) { |total,buff| total + buff[:value] }
     end
 
     def resolve_ailements
@@ -195,12 +201,14 @@ module Combat
         damage + Equipment.attack_value(weapon)
       }
 
+      attack_buff_damage = buffs_total_value :attack
+
       magic_weapons = @equipment.values.compact.select { |piece| Equipment.raise_magic_attack? piece }
       magic_damage  = magic_weapons.inject(0) { |damage,weapon|
         damage + Equipment.magic_attack_value(weapon)
       }
 
-      buff_damage = buffs_total_value :attack
+      magic_attack_buff_damage = magic_damage > 0 ? buffs_total_value(:magic_attack) : 0
 
       ailments  =  @equipment.values.compact.select { |piece| Equipment.has_ailment_effect? piece }
                   .map { |piece| 
@@ -209,13 +217,14 @@ module Combat
                   .flatten
 
       response            = Message.new_attack self, message[:targets]
-      response[:attack]   = { strength_damage:  strength_damage,
-                              weapons:          weapons,
-                              weapon_damage:    weapon_damage,
-                              magic_weapons:    magic_weapons,
-                              magic_damage:     magic_damage,
-                              buff_damage:      buff_damage,            
-                              ailments:         ailments }
+      response[:attack]   = { strength_damage:          strength_damage,
+                              attack_buff_damage:       attack_buff_damage,            
+                              weapons:                  weapons,
+                              weapon_damage:            weapon_damage,
+                              magic_weapons:            magic_weapons,
+                              magic_damage:             magic_damage,
+                              magic_attack_buff_damage: magic_attack_buff_damage,            
+                              ailments:                 ailments }
       response
     end
 
@@ -311,9 +320,10 @@ module Combat
                       }
 
       physical_damage = [ 0, 
-                          attack[:strength_damage]  + 
-                          attack[:weapon_damage]    -
-                          equipment_defense         -
+                          attack[:strength_damage]    + 
+                          attack[:attack_buff_damage] +
+                          attack[:weapon_damage]      -
+                          equipment_defense           -
                           buff_defense ].max
 
       ### Magic damage :
@@ -332,8 +342,9 @@ module Combat
                             }
 
       magic_damage  = [ 0, 
-                        attack[:magic_damage]   -
-                        equipment_magic_defense -
+                        attack[:magic_damage]             +
+                        attack[:magic_attack_buff_damage] -
+                        equipment_magic_defense           -
                         buff_magic_defense ].max
 
       ### Ailments :
@@ -384,8 +395,9 @@ module Combat
                             }
 
       magic_damage  = [ 0, 
-                        attack[:magic_damage]   -
-                        equipment_magic_defense -
+                        attack[:magic_damage]             +
+                        attack[:magic_attack_buff_damage] -
+                        equipment_magic_defense           -
                         buff_magic_defense ].max
 
       ### Final damage calculation :

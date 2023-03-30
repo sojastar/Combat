@@ -50,13 +50,14 @@ module Combat
       message[:type]    = :attack
       message[:parent]  = parent
       message[:targets] = targets
-      message[:attack]  = { strength_damage:  0,
-                            weapons:          [],
-                            weapon_damage:    0,
-                            magic_weapons:    [],
-                            magic_damage:     0,
-                            buff_damage:      0,
-                            ailments:         [] }
+      message[:attack]  = { strength_damage:          0,
+                            attack_buff_damage:       0,
+                            weapons:                  [],
+                            weapon_damage:            0,
+                            magic_weapons:            [],
+                            magic_damage:             0,
+                            magic_attack_buff_damage: 0,
+                            ailments:                 [] }
 
       message
     end
