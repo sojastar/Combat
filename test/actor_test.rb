@@ -726,16 +726,16 @@ describe Combat::Actor do
     assert_equal  @actor,         response[:parent]
     assert_nil                    response[:targets]
 
-    hit = response[:got_magic_hit]
+    hit                   = response[:got_magic_hit]
+    expected_magic_damage = [ magic_attack[:magic_damage]             +
+                              magic_attack[:magic_attack_buff_damage] -
+                              hit[:equipment_magic_defense]           -
+                              hit[:buff_magic_defense], 0 ].max
 
-    assert_equal  helm[:value],                 hit[:equipment_magic_defense]
-    assert_equal  magic_defense_buff[:value],   hit[:buff_magic_defense]
-    assert_equal  [ magic_attack[:magic_damage]             +
-                    magic_attack[:magic_attack_buff_damage] -
-                    hit[:equipment_magic_defense]           -
-                    hit[:buff_magic_defense], 0 ].max,
-                                                hit[:magic_damage]
-    assert_equal  spell,                        hit[:spell]
+    assert_equal  helm[:value],               hit[:equipment_magic_defense]
+    assert_equal  magic_defense_buff[:value], hit[:buff_magic_defense]
+    assert_equal  expected_magic_damage,      hit[:magic_damage]
+    assert_equal  spell,                      hit[:spell]
   end 
 
   ### 6.3 Heal :

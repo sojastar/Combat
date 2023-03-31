@@ -84,32 +84,93 @@ describe Combat::Fight do
 
   ### 3.1. ATTACKS : ###########################################################
   it 'produces an attack message/response when the actor selects attack' do
-    # Player 1 attacking :
+    # Player 1 setup :
     equipment_id                    = :evil_sword   # a weapon that does it all
     equipment                       = Combat::Equipment::PIECES[equipment_id]
     ailment                         = { source: equipment_id,
                                         effect: equipment[:effects][2] }
     @player1.equipment[:left_hand]  = equipment_id
 
+    attack_buff       = { source: 'War Cry', on: :attack, value: 2, turns: 3 }
+    magic_attack_buff = { source: 'Secret Ritual', on: :magic_attack, value: 1, turns: 3 }
+    @player1.active_buffs << attack_buff << magic_attack_buff
+
+    # Player 1 attacking :
     selection = Combat::Message.new_attack_selected @actor,
                                                     { targets:  [ @enemy1 ],
                                                       param:    nil }
     attack_response  = @fight.run_actor @player1, selection
 
+    # Tests :
     assert_equal  :attack,      attack_response[:type]
     assert_equal  [ @enemy1 ],  attack_response[:targets]
 
     attack  = attack_response[:attack]
 
     assert_includes 0..@player1.strength,           attack[:strength_damage] 
+    assert_equal    attack_buff[:value],            attack[:attack_buff_damage]
     assert_equal    [ equipment_id ],               attack[:weapons]
     assert_equal    equipment[:effects][0][:value], attack[:weapon_damage]
     assert_equal    [ equipment_id ],               attack[:magic_weapons]
     assert_equal    equipment[:effects][1][:value], attack[:magic_damage]
+    assert_equal    magic_attack_buff[:value],      attack[:magic_attack_buff_damage]
     assert_equal    [ ailment ],                    attack[:ailments]
   end
 
   ### 3.2 CASTING SPELLS : #####################################################
+  it 'produces a magic attack message when a magic attack spell is cast' do
+    # Player 1 setup :
+    magic_attack_buff = { source: 'Secret Ritual', on: :magic_attack, value: 1, turns: 3 }
+    @player1.active_buffs << magic_attack_buff
+
+    # Player 1 attacking :
+    spell_id  = :fire_ball
+    spell     = Combat::Spell::SPELLS[spell_id]
+    selection = Combat::Message.new_cast_selected @actor,
+                                                  { targets:  [ @enemy1 ],
+                                                    param:    spell_id }
+    cast_response = @fight.run_actor @player1, selection
+
+    # Tests :
+    #pp cast_response
+    assert_equal  :cast,        cast_response[:type]
+    assert_equal  [ @enemy1 ],  cast_response[:targets]
+
+    cast = cast_response[:cast]
+
+    assert_equal spell_id,  cast[:spell]
+    assert_equal 1,         cast[:submessages].length
+
+    magic_attack_submessage = cast[:submessages][0]
+
+    assert_equal  :magic_attack,              magic_attack_submessage[:type]
+    assert_equal  @player1,                   magic_attack_submessage[:parent]
+    assert_equal  [ @enemy1 ],                magic_attack_submessage[:targets ]
+
+    magic_attack = magic_attack_submessage[:magic_attack]
+
+    assert_includes spell[:effects][0][:value], magic_attack[:magic_damage]
+    assert_equal    magic_attack_buff[:value],  magic_attack[:magic_attack_buff_damage]
+    assert_empty                                magic_attack[:ailments]  
+    assert_equal    spell_id,                   magic_attack[:spell]
+  end
+
+  it 'produces a heal message when a healing spell is cast' do
+    
+  end
+
+  it 'produces an add mana message when an add mana spell is cast' do
+    
+  end
+
+  it 'produces a buff message when a buff spell is cast' do
+    
+  end
+
+  it 'produces a ailment message when a ailment spell is cast' do
+    
+  end
+
   #it 'produces a cast message/response when the actor selects cast' do
   #  menu_choice = Combat::Message.new_cast_selected(  { targets: [ @enemy1 ],
   #                                                      param:   :fire_ball } )
