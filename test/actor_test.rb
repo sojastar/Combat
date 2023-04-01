@@ -236,7 +236,8 @@ describe Combat::Actor do
     assert_equal    menu_selection[:targets],       submessage[:targets]
     assert_includes spell[:effects].first[:value],  submessage[:magic_attack][:magic_damage] 
     assert_equal    magic_attack_buff[:value],      submessage[:magic_attack][:magic_attack_buff_damage]
-    assert_equal    spell_id,                       submessage[:magic_attack][:spell]
+    #assert_equal    spell_id,                       submessage[:magic_attack][:spell]
+    assert_equal    spell_id,                       submessage[:magic_attack][:source]
   end
 
   it 'casts healing spells' do
@@ -518,7 +519,7 @@ describe Combat::Actor do
     assert_equal    magic_attack_buff[:value],
                                 magic_attack[:magic_attack_buff_damage]
     assert_empty                magic_attack[:ailments]
-    assert_equal    item.type,  magic_attack[:spell]
+    assert_equal    item.type,  magic_attack[:source]
   end
 
   it 'uses items that provoke ailments' do
@@ -714,10 +715,12 @@ describe Combat::Actor do
 
     # Attack :
     magic_attack_message                = Combat::Message.new_magic_attack :a_parent, [ @actor ]
-    spell                               = Combat::Spell::SPELLS[:fire_ball]
-    magic_attack                        = { magic_damage: 10,
+    spell_id                            = :fire_ball
+    spell                               = Combat::Spell::SPELLS[spell_id]
+    magic_attack                        = { magic_damage:             10,
                                             magic_attack_buff_damage: 3,
-                                            spell:        spell }
+                                            ailments:                 [],
+                                            source:                   spell_id }
     magic_attack_message[:magic_attack] = magic_attack
     
     response  = @actor.got_magic_hit magic_attack_message
@@ -735,7 +738,7 @@ describe Combat::Actor do
     assert_equal  helm[:value],               hit[:equipment_magic_defense]
     assert_equal  magic_defense_buff[:value], hit[:buff_magic_defense]
     assert_equal  expected_magic_damage,      hit[:magic_damage]
-    assert_equal  spell,                      hit[:spell]
+    assert_equal  spell_id,                   hit[:source]
   end 
 
   ### 6.3 Heal :

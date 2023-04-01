@@ -123,7 +123,7 @@ describe Combat::Fight do
     magic_attack_buff = { source: 'Secret Ritual', on: :magic_attack, value: 1, turns: 3 }
     @player1.active_buffs << magic_attack_buff
 
-    # Player 1 attacking :
+    # Player 1 casting a magic attack :
     spell_id  = :fire_ball
     spell     = Combat::Spell::SPELLS[spell_id]
     selection = Combat::Message.new_cast_selected @actor,
@@ -132,7 +132,6 @@ describe Combat::Fight do
     cast_response = @fight.run_actor @player1, selection
 
     # Tests :
-    #pp cast_response
     assert_equal  :cast,        cast_response[:type]
     assert_equal  [ @enemy1 ],  cast_response[:targets]
 
@@ -143,9 +142,9 @@ describe Combat::Fight do
 
     magic_attack_submessage = cast[:submessages][0]
 
-    assert_equal  :magic_attack,              magic_attack_submessage[:type]
-    assert_equal  @player1,                   magic_attack_submessage[:parent]
-    assert_equal  [ @enemy1 ],                magic_attack_submessage[:targets ]
+    assert_equal  :magic_attack,  magic_attack_submessage[:type]
+    assert_equal  @player1,       magic_attack_submessage[:parent]
+    assert_equal  [ @enemy1 ],    magic_attack_submessage[:targets ]
 
     magic_attack = magic_attack_submessage[:magic_attack]
 
@@ -156,7 +155,32 @@ describe Combat::Fight do
   end
 
   it 'produces a heal message when a healing spell is cast' do
-    
+    spell_id  = :heal
+    spell     = Combat::Spell::SPELLS[spell_id]
+    selection = Combat::Message.new_cast_selected @actor,
+                                                  { targets:  [ @player2 ],
+                                                    param:    spell_id }
+    cast_response = @fight.run_actor @player1, selection
+
+    # Tests :
+    assert_equal  :cast,        cast_response[:type]
+    assert_equal  [ @player2 ], cast_response[:targets]
+
+    cast = cast_response[:cast]
+
+    assert_equal spell_id,  cast[:spell]
+    assert_equal 1,         cast[:submessages].length
+
+    heal_submessage = cast[:submessages][0]
+
+    assert_equal  :heal,        heal_submessage[:type]
+    assert_equal  @player1,     heal_submessage[:parent]
+    assert_equal  [ @player2 ], heal_submessage[:targets ]
+
+    heal = heal_submessage[:heal]
+
+    assert_includes spell[:effects][0][:value], heal[:amount]
+    assert_equal    spell_id,                   heal[:source]
   end
 
   it 'produces an add mana message when an add mana spell is cast' do

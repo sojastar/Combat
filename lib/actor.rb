@@ -89,7 +89,7 @@ module Combat
             submessage[:magic_attack] = { magic_damage:             rand(effect[:value]),
                                           magic_attack_buff_damage: magic_attack_buff_damage,
                                           ailments:                 [],
-                                          spell:                    source }
+                                          source:                   source }
             submessage
 
           when :heal
@@ -408,7 +408,7 @@ module Combat
       response[:got_magic_hit]  = { equipment_magic_defense:  equipment_magic_defense,
                                     buff_magic_defense:       buff_magic_defense,
                                     magic_damage:             magic_damage,
-                                    spell:                    message[:magic_attack][:spell] }
+                                    source:                    message[:magic_attack][:source] }
 
       response
     end
