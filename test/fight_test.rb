@@ -151,7 +151,7 @@ describe Combat::Fight do
     assert_includes spell[:effects][0][:value], magic_attack[:magic_damage]
     assert_equal    magic_attack_buff[:value],  magic_attack[:magic_attack_buff_damage]
     assert_empty                                magic_attack[:ailments]  
-    assert_equal    spell_id,                   magic_attack[:spell]
+    assert_equal    spell_id,                   magic_attack[:source]
   end
 
   it 'produces a heal message when a healing spell is cast' do
